@@ -1,32 +1,42 @@
+import os
+from datetime import datetime
 
-from typing import Optional
-from porm.table import Table, PormField
+from pypika.queries import QueryBuilder
 
-def run():
+from porm.core import Porm
+from porm.table import PormField, Table
 
-    class MyTable(Table):
-        __tablename__ = "tablename"
+
+async def run():
+    class Restaurant(Table):
+        __tablename__ = "restaurant"
 
         """ end state might be something like:
         id: int = PormField("id", pk=True)
         name: str = PormField("name")
         """
 
-        id: int = PormField(int, "id")
+        id: int = PormField(int, "id", pk=True)
         name: str = PormField(str, "name")
-        description: Optional[str] = PormField(Optional[str], "description")
+        created_at: datetime = PormField(datetime, "created_at")
 
-    obj1 = MyTable(id=1, name="obj1")
-    obj2 = MyTable(id=2, name="obj2", description="yeeterooni")
-    MyTable.insert(obj1, obj2)
+    await Porm.connect(dsn=os.environ["DSN"])
 
-    # MyTable.insert(obj1, obj2)
+    query: QueryBuilder = Restaurant.select().where(Restaurant.id < 10)
 
-    # q = MyTable.select().where(MyTable.field1 == MyTable.field2)
-    # print(q)
-    # q = Query.from_("tablename").select(MyTable.field1 - MyTable.field2)
-    # print(q)
+    # r: Restaurant = (await Porm.fetch_many(query.get_sql(), Restaurant))[0]
+
+    r = await Restaurant.fetch_first(Restaurant.id == 1)
+    print(r)
+
+    r = await Restaurant.fetch_many(Restaurant.id < 10)
+    print(r)
+
+    # r.name = "test"
+    # r.id = 12
 
 
 if __name__ == "__main__":
-    run()
+    import asyncio
+
+    asyncio.run(run())
