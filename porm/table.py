@@ -1,6 +1,5 @@
-from typing import Any, Final, Optional
+from typing import Any, Final, Optional, Type, Union
 
-from asyncpg.types import Type
 from pydantic.errors import cls_kwargs
 from pydantic.main import create_model
 from pypika import Query
@@ -8,7 +7,7 @@ from pypika.queries import QueryBuilder
 from pypika.terms import BasicCriterion, Field
 
 from porm.core import Porm
-from porm.types import ModelFactory, TableModel
+from porm.types import Model
 from porm.utils import with_returning
 
 
@@ -30,14 +29,13 @@ class Table:
 
     __tablename__: str
 
-    def __new__(cls, /, **create_fields) -> TableModel:
+    def __new__(cls, /, **create_fields) -> Model:
 
-        self = super().__new__(cls)
-
-        model_factory = self._create_model_factory()
+        model_factory = cls._create_model_factory()
         return model_factory(**create_fields)
 
-    def _create_model_factory(self) -> ModelFactory:
+    @classmethod
+    def _create_model_factory(self) -> Type[Model]:
 
         factory_model_kwargs = {}
         for field in self._db_fields():
@@ -46,9 +44,8 @@ class Table:
         return create_model(self.__class__.__name__, **factory_model_kwargs)
 
     def __init_subclass__(cls) -> None:
-        self = super().__new__(cls)
-        if not hasattr(self, "__tablename__") or self.__tablename__ is None:
-            raise Exception(f"{self.__class__.__name__} must define a __tablename__ property")
+        if not hasattr(cls, "__tablename__") or cls.__tablename__ is None:
+            raise Exception(f"{cls.__class__.__name__} must define a __tablename__ property")
 
     @classmethod
     def _db_fields(cls, exclude_autogen: Optional[bool] = False) -> list[PormField]:
@@ -58,7 +55,7 @@ class Table:
         return fields
 
     @classmethod
-    def _db_values(cls, item: TableModel, exclude_autogen: Optional[bool] = False) -> list[Any]:
+    def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> list[Any]:
         return [getattr(item, field.name) for field in cls._db_fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
@@ -84,15 +81,14 @@ class Table:
     # db operators
     @classmethod
     def from_(cls) -> QueryBuilder:
-        self = super().__new__(cls)
-        return Query.from_(self.__tablename__)
+        return Query.from_(cls.__tablename__)
 
     @classmethod
     def select(cls) -> QueryBuilder:
         return cls.from_().select("*")
 
     @classmethod
-    async def first(cls, query: QueryBuilder) -> Optional[TableModel]:
+    async def first(cls: Type[Model] | "Table", query: QueryBuilder) -> Optional[Model]:
         # run query
         cursor_results = []
         if len(cursor_results) > 0:
@@ -100,7 +96,7 @@ class Table:
         return None
 
     @classmethod
-    async def insert_one(cls, item: TableModel) -> TableModel:
+    async def insert_one(cls: Type[Model] | "Table", item: Model) -> Model:
         query: QueryBuilder = (
             Query.into(cls.__tablename__)
             .columns(cls._db_fields(exclude_autogen=True))
@@ -109,23 +105,22 @@ class Table:
         return await Porm.fetch_one(with_returning(query), cls)
 
     @classmethod
-    async def insert_many(cls, /, *items: list[TableModel]) -> list[TableModel]:
-        self = super().__new__(cls)
-        query: QueryBuilder = Query.info(self.__tablename__).columns(*self._db_fields())
+    async def insert_many(cls: Type[Model] | "Table", /, *items: list[Model]) -> list[Model]:
+        query: QueryBuilder = Query.info(cls.__tablename__).columns(*cls._db_fields())
 
         for item in items:
-            query = query.insert(*self._db_values(item))
+            query = query.insert(*cls._db_values(item))
 
         return await Porm.fetch_many(with_returning(query), cls)
 
     @classmethod
-    async def fetch_first(cls, /, criterion: BasicCriterion) -> Optional[TableModel]:
+    async def fetch_first(cls: Type[Model] | "Table", /, criterion: BasicCriterion) -> Optional[Model]:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(1)
         return await Porm.fetch_one(query.get_sql(), cls)
 
     @classmethod
-    async def get(cls, /, criterion: BasicCriterion) -> TableModel:
+    async def get(cls: Type[Model] | "Table", /, criterion: BasicCriterion) -> Model:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
         results = await Porm.fetch_many(query.get_sql(), cls)
@@ -135,12 +130,12 @@ class Table:
         return results[0]
 
     @classmethod
-    async def fetch_many(cls, /, criterion: BasicCriterion) -> list[TableModel]:
+    async def fetch_many(cls: Type[Model] | "Table", /, criterion: BasicCriterion) -> list[Model]:
         query: QueryBuilder = cls.select().where(criterion)
         return await Porm.fetch_many(query.get_sql(), cls)
 
     @classmethod
-    async def update_one(cls, item: TableModel) -> TableModel:
+    async def update_one(cls: Type[Model] | "Table", item: Model) -> Model:
         query: QueryBuilder = Query.update(cls.__tablename__)
 
         for field in cls._db_fields():

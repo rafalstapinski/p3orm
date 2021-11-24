@@ -1,6 +1,8 @@
+from typing import Type
+
 import asyncpg
 
-from porm.types import TableModel
+from porm.types import Model
 from porm.utils import record_to_kwargs
 
 
@@ -26,11 +28,11 @@ class _Porm:
     async def disconnect(self):
         await self.connection.close()
 
-    async def fetch_one(self, query: str, model: TableModel):
+    async def fetch_one(self, query: str, model: Type[Model]) -> Model:
         resp: asyncpg.Record = await self.connection.fetchrow(query)
         return model(**record_to_kwargs(resp))
 
-    async def fetch_many(self, query: str, model: TableModel) -> list[TableModel]:
+    async def fetch_many(self, query: str, model: Type[Model]) -> list[Model]:
         resp = await self.connection.fetch(query)
         return [model(**record_to_kwargs(row)) for row in resp]
 
