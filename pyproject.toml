@@ -1,8 +1,13 @@
 [tool.poetry]
 name = "porm"
 version = "0.1.0"
-description = ""
+description = "Python Postgres ORM"
 authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
+keywords = ["postgres", "async", "orm"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/rafalstapinski/porm"
+repository = "https://github.com/rafalstapinski/porm"
 
 [tool.poetry.dependencies]
 python = "^3.10"
