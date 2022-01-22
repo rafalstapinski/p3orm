@@ -6,9 +6,9 @@ from pypika import Query
 from pypika.queries import QueryBuilder
 from pypika.terms import BasicCriterion, Field
 
-from porm.core import Porm
-from porm.types import Model
-from porm.utils import with_returning
+from p3orm.core import Porm
+from p3orm.types import Model
+from p3orm.utils import with_returning
 
 
 class PormField(Field):

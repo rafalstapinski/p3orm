@@ -2,8 +2,8 @@ from typing import Type
 
 import asyncpg
 
-from porm.types import Model
-from porm.utils import record_to_kwargs
+from p3orm.types import Model
+from p3orm.utils import record_to_kwargs
 
 
 class _Porm:
