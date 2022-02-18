@@ -5,8 +5,8 @@ from typing import Optional, get_type_hints
 from pydantic.main import BaseModel
 from pypika.queries import QueryBuilder
 
-from porm.core import Porm
-from porm.table import PormField, Table
+from p3orm.core import Porm
+from p3orm.table import PormField, Table
 
 
 async def run():
@@ -18,13 +18,11 @@ async def run():
         name: str = PormField("name")
         """
 
-        id: int = PormField(int, "id", pk=True, autogen=True)
-        name: str = PormField(str, "name")
-        created_at: datetime = PormField(datetime, "created_at", autogen=True)
+        id: int = PormField("id", pk=True, autogen=True)
+        name: str = PormField("name")
+        created_at: datetime = PormField("created_at", autogen=True)
 
-    print(get_type_hints(Example))
-
-    # await Porm.connect(dsn=os.environ["DSN"])
+    await Porm.connect(dsn=os.environ["DSN"])
 
     # query: QueryBuilder = Example.select().where(Example.id < 10)
 
@@ -37,13 +35,15 @@ async def run():
 
     # print(r)
 
-    r.created_at = "yeet"
+    print(r)
+
+    r.name = "yeet"
 
     r = await Example.update_one(r)
     # print(r)
     # r.id = 12
 
-    print(r.from_)
+    print(r)
 
 
 if __name__ == "__main__":

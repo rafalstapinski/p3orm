@@ -1,6 +1,5 @@
 {
   // Python
-  "python.pythonPath": ".venv/bin/python",
   "python.formatting.blackPath": ".venv/bin/black",
   "python.linting.mypyPath": ".venv/bin/mypy",
   "python.formatting.provider": "black",

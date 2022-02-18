@@ -1,4 +1,4 @@
-from typing import Any, Final, Optional, Type, Union
+from typing import Any, Final, Optional, Type, Union, get_type_hints
 
 from pydantic.errors import cls_kwargs
 from pydantic.main import create_model
@@ -14,13 +14,11 @@ from p3orm.utils import with_returning
 class PormField(Field):
 
     name: str
-    data_type: Final[Type]
     pk: bool
     autogen: bool
 
-    def __init__(self, data_type: Type, name: str, pk: Optional[bool] = False, autogen: Optional[bool] = False):
+    def __init__(self, name: str, pk: Optional[bool] = False, autogen: Optional[bool] = False):
         self.name = name  # also used by pypika
-        self.data_type = data_type
         self.pk = pk
         self.autogen = autogen
 
@@ -30,53 +28,50 @@ class Table:
     __tablename__: str
 
     def __new__(cls, /, **create_fields) -> Model:
-
         model_factory = cls._create_model_factory()
         return model_factory(**create_fields)
 
     @classmethod
-    def _create_model_factory(self) -> Type[Model]:
+    def _create_model_factory(cls) -> Type[Model]:
+
+        types = get_type_hints(cls)
 
         factory_model_kwargs = {}
-        for field in self._db_fields():
-            factory_model_kwargs[field.name] = (field.data_type, None)
+        for field_name in cls._field_map().keys():
+            factory_model_kwargs[field_name] = (types[field_name], None)
 
-        return create_model(self.__class__.__name__, **factory_model_kwargs)
+        return create_model(cls.__class__.__name__, **factory_model_kwargs)
 
     def __init_subclass__(cls) -> None:
         if not hasattr(cls, "__tablename__") or cls.__tablename__ is None:
             raise Exception(f"{cls.__class__.__name__} must define a __tablename__ property")
 
     @classmethod
-    def _db_fields(cls, exclude_autogen: Optional[bool] = False) -> list[PormField]:
+    def _fields(cls, exclude_autogen: Optional[bool] = False) -> list[PormField]:
         fields = [field for field_name in cls.__dict__ if isinstance(field := getattr(cls, field_name), PormField)]
         if exclude_autogen:
             fields = [f for f in fields if not f.autogen]
         return fields
 
     @classmethod
+    def _field_map(cls, exclude_autogen: Optional[bool] = False) -> dict[str, PormField]:
+        fields = {
+            field_name: field for field_name in cls.__dict__ if isinstance(field := getattr(cls, field_name), PormField)
+        }
+        if exclude_autogen:
+            fields = {k: v for k, v in fields.items() if not v.autogen}
+        return fields
+
+    @classmethod
     def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> list[Any]:
-        return [getattr(item, field.name) for field in cls._db_fields(exclude_autogen=exclude_autogen)]
+        return [getattr(item, field.name) for field in cls._fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
     def _primary_key(cls) -> Optional[PormField]:
-        for field in cls._db_fields():
+        for field in cls._fields():
             if field.pk:
                 return field
         return None
-
-    # def __setattr__(self, name: str, value: Any) -> None:
-    #     if not hasattr(self, name):
-    #         raise Exception(f"Attribute {name} doesn't exist on {self.__class__.__name__}")
-
-    #     attr = getattr(name)
-    #     if not isinstance(attr, PormField):
-    #         raise Exception(f"Can't set {name} on {self.__class__.__name__}")
-
-    #     if attr.pk:
-    #         raise Exception(f"Can't override primary key of {self.__class__.__name__}")
-
-    #     super().__setattr__(name, value)
 
     # db operators
     @classmethod
@@ -99,14 +94,14 @@ class Table:
     async def insert_one(cls: Type[Model] | "Table", item: Model) -> Model:
         query: QueryBuilder = (
             Query.into(cls.__tablename__)
-            .columns(cls._db_fields(exclude_autogen=True))
+            .columns(cls._fields(exclude_autogen=True))
             .insert(*cls._db_values(item, exclude_autogen=True))
         )
         return await Porm.fetch_one(with_returning(query), cls)
 
     @classmethod
     async def insert_many(cls: Type[Model] | "Table", /, *items: list[Model]) -> list[Model]:
-        query: QueryBuilder = Query.info(cls.__tablename__).columns(*cls._db_fields())
+        query: QueryBuilder = Query.info(cls.__tablename__).columns(*cls._fields())
 
         for item in items:
             query = query.insert(*cls._db_values(item))
@@ -138,7 +133,7 @@ class Table:
     async def update_one(cls: Type[Model] | "Table", item: Model) -> Model:
         query: QueryBuilder = Query.update(cls.__tablename__)
 
-        for field in cls._db_fields():
+        for field in cls._fields():
             query = query.set(field.name, getattr(item, field.name))
 
         pk = cls._primary_key()
