@@ -13,7 +13,15 @@ if TYPE_CHECKING:
 @pytest.mark.asyncio
 async def test_connection(postgresql: connection):
 
-    await Porm.connect(**postgresql.get_dsn_parameters())
+    dsn_params = postgresql.get_dsn_parameters()
+
+    await Porm.connect(
+        user=dsn_params.get("user"),
+        password=dsn_params.get("password"),
+        database=dsn_params.get("dbname"),
+        host=dsn_params.get("host"),
+        port=dsn_params.get("port"),
+    )
     assert Porm.connection.is_closed() == False
 
     await Porm.disconnect()

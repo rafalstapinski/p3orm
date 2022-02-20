@@ -2,7 +2,11 @@ class PormException(Exception):
     ...
 
 
-class MultipleObjectsReturned(PormException):
+class MultipleResultsReturned(PormException):
+    ...
+
+
+class NoResultsReturned(PormException):
     ...
 
 

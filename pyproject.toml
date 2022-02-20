@@ -34,3 +34,6 @@ multi_line_output = 3
 include_trailing_comma = true
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 known_local_folder = ["test"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from p3orm.exceptions import MultipleObjectsReturned
+from p3orm.exceptions import MultipleResultsReturned, NoResultsReturned
 
 from test.fixtures.helpers import create_base_and_connect
 from test.fixtures.tables import Company
@@ -77,5 +77,34 @@ async def test_fetch_one_fails_with_multiple(postgresql: connection):
 
     await create_base_and_connect(postgresql)
 
-    with pytest.raises(MultipleObjectsReturned):
+    with pytest.raises(MultipleResultsReturned):
         await Company.fetch_one(Company.id != 1)
+
+
+@pytest.mark.asyncio
+async def test_fetch_one_fails_with_none(postgresql: connection):
+
+    await create_base_and_connect(postgresql)
+
+    with pytest.raises(NoResultsReturned):
+        await Company.fetch_one(Company.id == 100)
+
+
+@pytest.mark.asyncio
+async def fetch_first_returns_none(postgresql: connection):
+
+    await create_base_and_connect(postgresql)
+
+    result = await Company.fetch_first(Company.id == 100)
+
+    assert result == None
+
+
+@pytest.mark.asyncio
+async def fetch_many_returns_empty(postgresql: connection):
+
+    await create_base_and_connect(postgresql)
+
+    results = await Company.fetch_many(Company.id == 100)
+
+    assert results == []

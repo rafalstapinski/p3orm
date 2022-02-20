@@ -13,7 +13,8 @@ from p3orm.exceptions import (
     MissingPrimaryKey,
     MissingRelationship,
     MissingTablename,
-    MultipleObjectsReturned,
+    MultipleResultsReturned,
+    NoResultsReturned,
 )
 from p3orm.types import Annotation, Model
 from p3orm.utils import with_returning
@@ -204,8 +205,11 @@ class Table:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
         results = await Porm.fetch_many(query.get_sql(), cls)
+
         if len(results) > 1:
-            raise MultipleObjectsReturned(f"Multiple {cls.__name__} were returned when only one was expected")
+            raise MultipleResultsReturned(f"Multiple {cls.__name__} were returned when only one was expected")
+        elif len(results) == 0:
+            raise NoResultsReturned(f"No {cls.__name__} were returned when one was expected")
 
         result = results[0]
 
