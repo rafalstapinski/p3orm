@@ -13,7 +13,7 @@ Object created or fetched by porm are **dead**, they're just (currently) Pydanti
 
 ## Roadmap
 
-- [ ] Annotation type definition
-- [ ] Relationships
+- [x] Annotation type definition
+- [x] Relationships
 - [ ] Tests
 - [ ] Look into [attrs](https://github.com/python-attrs/attrs) over pydantic (does this actually need type *validation*)
