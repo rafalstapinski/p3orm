@@ -29,6 +29,11 @@ class Relationship:
     self_field: str
     other_field: str
 
+    def __new__(cls, *args, **kwargs):
+        if cls is Relationship:
+            raise Exception(f"can only use {[sc.__name__ for sc in cls.__subclasses__()]}")
+        super().__new__(cls, *args, **kwargs)
+
     def __init__(self, /, table: Type[Table], *, self_field: str, other_field: str):
         self.table = table
         self.self_field = self_field
@@ -191,6 +196,21 @@ class Table:
             await cls.fetch_related([result], prefetch)
 
         return result
+
+    @classmethod
+    async def fetch_all(
+        cls,
+        *,
+        prefetch: tuple[tuple[Relationship]] = None,
+    ):
+
+        query = cls.select()
+        results = await Porm.fetch_many(query.get_sql(), cls)
+
+        if prefetch:
+            await cls.fetch_related(results, prefetch)
+
+        return results
 
     @classmethod
     async def fetch_many(

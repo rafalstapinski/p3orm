@@ -19,7 +19,8 @@ class _Porm:
         password: str = None,
         database: str = None,
         host: str = None,
-        port: int = None
+        port: int = None,
+        **kwargs
     ):
         self.connection = await asyncpg.connect(
             dsn=dsn, host=host, port=port, user=user, password=password, database=database
