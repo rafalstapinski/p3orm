@@ -164,15 +164,20 @@ class Table:
 
     @classmethod
     async def fetch_first(
-        cls: Type[Model] | Table, /, criterion: BasicCriterion, *, prefetch: list[Relationship] = []
+        cls: Type[Model] | Table, /, criterion: BasicCriterion, *, prefetch: tuple[tuple[Relationship]] = None
     ) -> Optional[Model]:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(1)
-        return await Porm.fetch_one(query.get_sql(), cls)
+        result = await Porm.fetch_one(query.get_sql(), cls)
+
+        if prefetch:
+            await cls.fetch_related([result], prefetch)
+
+        return result
 
     @classmethod
     async def fetch_one(
-        cls: Type[Model] | Table, /, criterion: BasicCriterion, *, prefetch: list[Relationship]
+        cls: Type[Model] | Table, /, criterion: BasicCriterion, *, prefetch: tuple[tuple[Relationship]] = None
     ) -> Model:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
@@ -180,7 +185,12 @@ class Table:
         if len(results) > 1:
             raise Exception("Multiple objects were returned from get query")
 
-        return results[0]
+        result = results[0]
+
+        if prefetch:
+            await cls.fetch_related([result], prefetch)
+
+        return result
 
     @classmethod
     async def fetch_many(
@@ -188,10 +198,15 @@ class Table:
         /,
         criterion: BasicCriterion,
         *,
-        prefetch: list[Relationship],
+        prefetch: tuple[tuple[Relationship]] = None,
     ) -> list[Model]:
         query: QueryBuilder = cls.select().where(criterion)
-        return await Porm.fetch_many(query.get_sql(), cls)
+        results = await Porm.fetch_many(query.get_sql(), cls)
+
+        if prefetch:
+            await cls.fetch_related(results, prefetch)
+
+        return results
 
     @classmethod
     async def update_one(cls: Type[Model] | Table, /, item: Model) -> Model:
