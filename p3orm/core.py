@@ -1,9 +1,7 @@
 from typing import Any, Type
 
 from asyncpg import Connection, Record, connect
-from asyncpg.exceptions._base import PostgresError
 
-from p3orm.exceptions import DatabaseException
 from p3orm.types import Model
 from p3orm.utils import record_to_kwargs
 

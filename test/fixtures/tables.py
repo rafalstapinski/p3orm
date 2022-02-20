@@ -1,9 +1,6 @@
 from datetime import datetime
-from enum import auto
 
-from pydantic import BaseModel
-
-from p3orm.table import Column, PormField, Table
+from p3orm.table import Column, Table
 
 
 class Company(Table):

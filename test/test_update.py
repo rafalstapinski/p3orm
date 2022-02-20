@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-import asyncpg
 import pytest
 
 from test.fixtures.helpers import create_base_and_connect
