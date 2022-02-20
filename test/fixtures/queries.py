@@ -2,14 +2,14 @@ BASE_TABLES = """
 CREATE TABLE company (
     id SERIAL PRIMARY KEY,
     name text NOT NULL,
-    created_at timestamp without time zone NOT NULL DEFAULT now()
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 
 CREATE TABLE employee (
     id SERIAL PRIMARY KEY,
     name text NOT NULL,
-    created_at timestamp without time zone NOT NULL DEFAULT now(),
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     company_id bigint NOT NULL REFERENCES company(id)
 );
 

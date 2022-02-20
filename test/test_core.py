@@ -6,9 +6,6 @@ import pytest
 
 from p3orm.core import Porm
 
-from test.fixtures.helpers import create_base
-from test.fixtures.tables import Company, Employee, OrgChart
-
 if TYPE_CHECKING:
     from psycopg2 import connection
 

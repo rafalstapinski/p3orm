@@ -3,7 +3,8 @@ from __future__ import annotations
 from optparse import Option
 from typing import Any, Optional, Type, get_type_hints
 
-from pydantic.main import create_model
+from pydantic import BaseModel
+from pydantic.main import ModelMetaclass, create_model
 from pypika import Query
 from pypika.queries import QueryBuilder
 from pypika.terms import BasicCriterion, Field
@@ -79,7 +80,7 @@ class Table:
     #
     # Magic
     #
-    def __new__(cls, /, **create_fields) -> Model:
+    def __new__(cls: Type[Model], /, **create_fields) -> Model:
         return cls._create_model_factory()(**create_fields)
 
     @classmethod
@@ -131,8 +132,6 @@ class Table:
         fields = {
             field_name: field for field_name in cls.__dict__ if isinstance(field := getattr(cls, field_name), PormField)
         }
-        if exclude_autogen:
-            fields = {k: v for k, v in fields.items() if not v.autogen}
         return fields
 
     @classmethod
@@ -145,11 +144,6 @@ class Table:
             if field.pk:
                 return field
         return None
-
-    @classmethod
-    def _validate_class(cls, item: Model):
-        if item is not cls:
-            raise Exception(f"{item} must be of type {cls}")
 
     @classmethod
     def _field(cls, field_name: str) -> PormField:
@@ -172,8 +166,6 @@ class Table:
     @classmethod
     async def insert_one(cls: Type[Model] | Table, /, item: Model) -> Model:
 
-        cls._validate_class(item)
-
         query: QueryBuilder = (
             Query.into(cls.__tablename__)
             .columns(cls._fields(exclude_autogen=True))
@@ -183,11 +175,10 @@ class Table:
 
     @classmethod
     async def insert_many(cls: Type[Model] | Table, /, items: list[Model]) -> list[Model]:
-        query: QueryBuilder = Query.info(cls.__tablename__).columns(*cls._fields())
+        query: QueryBuilder = Query.into(cls.__tablename__).columns(*cls._fields(exclude_autogen=True))
 
         for item in items:
-            cls._validate_class(item)
-            query = query.insert(*cls._db_values(item))
+            query = query.insert(*cls._db_values(item, exclude_autogen=True))
 
         return await Porm.fetch_many(with_returning(query), cls)
 
@@ -255,8 +246,6 @@ class Table:
     @classmethod
     async def update_one(cls: Type[Model] | Table, /, item: Model) -> Model:
 
-        cls._validate_class(item)
-
         query: QueryBuilder = Query.update(cls.__tablename__)
 
         for field in cls._fields():
@@ -272,8 +261,6 @@ class Table:
     async def fetch_related(
         cls: Type[Model] | Table, /, items: list[Model], _relationships: tuple[tuple[Relationship]]
     ):
-
-        [cls._validate_class(item) for item in items]
 
         # TODO: allow for single depth to not have to specify inside tuple
         for relationships in _relationships:

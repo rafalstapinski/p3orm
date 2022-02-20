@@ -8,7 +8,7 @@ import pytest
 from p3orm.exceptions import MultipleObjectsReturned
 
 from test.fixtures.helpers import create_base_and_connect
-from test.fixtures.tables import Company, Employee, OrgChart
+from test.fixtures.tables import Company
 
 if TYPE_CHECKING:
     from psycopg2 import connection

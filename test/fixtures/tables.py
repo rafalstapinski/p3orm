@@ -1,4 +1,7 @@
 from datetime import datetime
+from enum import auto
+
+from pydantic import BaseModel
 
 from p3orm.table import Column, PormField, Table
 
@@ -9,7 +12,7 @@ class Company(Table):
 
     id = Column(int, "id", pk=True, autogen=True)
     name = Column(str, "name")
-    created_at = Column(datetime, "created_at")
+    created_at = Column(datetime, "created_at", autogen=True)
 
 
 class Employee(Table):
@@ -19,7 +22,7 @@ class Employee(Table):
     id = Column(int, "id", pk=True, autogen=True)
     name = Column(str, "name")
     company_id = Column(int, "company_id")
-    created_at = Column(datetime, "created_at")
+    created_at = Column(datetime, "created_at", autogen=True)
 
 
 class OrgChart(Table):
