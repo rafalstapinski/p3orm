@@ -1,31 +1,31 @@
 from datetime import datetime
 
-from p3orm.table import PormField, Table
+from p3orm.table import Column, PormField, Table
 
 
 class Company(Table):
 
     __tablename__ = "company"
 
-    id: int = PormField("id", pk=True, autogen=True)
-    name: str = PormField("name")
-    created_at: datetime = PormField("created_at")
+    id = Column(int, "id", pk=True, autogen=True)
+    name = Column(str, "name")
+    created_at = Column(datetime, "created_at")
 
 
 class Employee(Table):
 
     __tablename__ = "employee"
 
-    id: int = PormField("id", pk=True, autogen=True)
-    name: str = PormField("name")
-    company_id: int = PormField("company_id")
-    created_at: datetime = PormField("created_at")
+    id = Column(int, "id", pk=True, autogen=True)
+    name = Column(str, "name")
+    company_id = Column(int, "company_id")
+    created_at = Column(datetime, "created_at")
 
 
 class OrgChart(Table):
 
     __tablename__ = "org_chart"
 
-    id: int = PormField("id", pk=True, autogen=True)
-    manager_id: int = PormField("manager_id")
-    report_id: int = PormField("report_id")
+    id = Column(int, "id", pk=True, autogen=True)
+    manager_id = Column(int, "manager_id")
+    report_id = Column(int, "report_id")

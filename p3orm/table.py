@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from optparse import Option
 from typing import Any, Optional, Type, get_type_hints
 
 from pydantic.main import create_model
@@ -8,19 +9,42 @@ from pypika.queries import QueryBuilder
 from pypika.terms import BasicCriterion, Field
 
 from p3orm.core import Porm
-from p3orm.types import Model
+from p3orm.exceptions import MultipleObjectsReturned
+from p3orm.types import Annotation, Model
 from p3orm.utils import with_returning
 
 
 class PormField(Field):
-
     pk: bool
     autogen: bool
+    _type: Type
 
-    def __init__(self, name: str, pk: Optional[bool] = False, autogen: Optional[bool] = False):
+    def __init__(
+        self,
+        _type: Type,
+        name: str,
+        pk: Optional[bool] = False,
+        autogen: Optional[bool] = False,
+    ):
+        self._type = _type
         self.name = name  # column name - must match field name as well
         self.pk = pk
         self.autogen = autogen
+
+
+def Column(
+    _type: Type[Annotation],
+    name: str,
+    *,
+    pk: Optional[bool] = False,
+    autogen: Optional[bool] = False,
+) -> Annotation | PormField:
+    return PormField(
+        _type=_type,
+        name=name,
+        pk=pk,
+        autogen=autogen,
+    )
 
 
 class Relationship:
@@ -64,8 +88,8 @@ class Table:
         types = get_type_hints(cls)
 
         factory_model_kwargs = {}
-        for field_name in cls._field_map().keys():
-            factory_model_kwargs[field_name] = (types[field_name], None)
+        for field_name, field in cls._field_map().items():
+            factory_model_kwargs[field_name] = (field._type, None)
 
         return create_model(cls.__name__, **factory_model_kwargs)
 
@@ -188,7 +212,7 @@ class Table:
         query = query.limit(2)
         results = await Porm.fetch_many(query.get_sql(), cls)
         if len(results) > 1:
-            raise Exception("Multiple objects were returned from get query")
+            raise MultipleObjectsReturned(f"Multiple {cls.__name__} were returned when only one was expected")
 
         result = results[0]
 

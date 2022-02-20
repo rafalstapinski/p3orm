@@ -31,3 +31,10 @@ def create_base_data(postgresql: connection):
 def create_base(postgresql: connection):
     create_base_tables(postgresql)
     create_base_data(postgresql)
+
+
+async def create_base_and_connect(postgresql: connection):
+    create_base(postgresql)
+    params = postgresql.get_dsn_parameters()
+    params["database"] = params["dbname"]
+    await Porm.connect(**params)

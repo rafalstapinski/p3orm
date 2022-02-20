@@ -15,5 +15,6 @@ Object created or fetched by porm are **dead**, they're just (currently) Pydanti
 
 - [x] Annotation type definition
 - [x] Relationships
+- [ ] Filter annotations when class and when instance
 - [ ] Tests
 - [ ] Look into [attrs](https://github.com/python-attrs/attrs) over pydantic (does this actually need type *validation*)
