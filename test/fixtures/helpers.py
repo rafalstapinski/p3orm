@@ -35,6 +35,12 @@ def create_base(postgresql: connection):
 
 async def create_base_and_connect(postgresql: connection):
     create_base(postgresql)
-    params = postgresql.get_dsn_parameters()
-    params["database"] = params["dbname"]
-    await Porm.connect(**params)
+    dsn_params = postgresql.get_dsn_parameters()
+
+    await Porm.connect(
+        user=dsn_params["user"],
+        password=dsn_params["password"],
+        database=dsn_params["dbname"],
+        host=dsn_params["host"],
+        port=dsn_params["port"],
+    )

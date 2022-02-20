@@ -1,15 +1,16 @@
-from typing import Type
+from typing import Any, Type
 
-import asyncpg
+from asyncpg import Connection, Record, connect
+from asyncpg.exceptions._base import PostgresError
 
+from p3orm.exceptions import DatabaseException
 from p3orm.types import Model
 from p3orm.utils import record_to_kwargs
 
 
 class _Porm:
 
-    connection: asyncpg.Connection
-    # pool: asyncpg.Pool
+    connection: Connection
 
     async def connect(
         self,
@@ -20,17 +21,27 @@ class _Porm:
         database: str = None,
         host: str = None,
         port: int = None,
-        **kwargs
+        **asyncpg_kwargs: dict[str, Any]
     ):
-        self.connection = await asyncpg.connect(
-            dsn=dsn, host=host, port=port, user=user, password=password, database=database
+        self.connection = await connect(
+            dsn=dsn,
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            database=database,
+            **asyncpg_kwargs,
         )
 
     async def disconnect(self):
         await self.connection.close()
 
     async def fetch_one(self, query: str, model: Type[Model]) -> Model:
-        resp: asyncpg.Record = await self.connection.fetchrow(query)
+        resp: Record = await self.connection.fetchrow(query)
+
+        if resp is None:
+            return None
+
         return model(**record_to_kwargs(resp))
 
     async def fetch_many(self, query: str, model: Type[Model]) -> list[Model]:

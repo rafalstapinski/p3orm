@@ -1,16 +1,20 @@
 from __future__ import annotations
 
-from optparse import Option
-from typing import Any, Optional, Type, get_type_hints
+from typing import Any, Optional, Type
 
-from pydantic import BaseModel
-from pydantic.main import ModelMetaclass, create_model
+from pydantic.main import create_model
 from pypika import Query
 from pypika.queries import QueryBuilder
-from pypika.terms import BasicCriterion, Field
+from pypika.terms import Criterion, Field
 
 from p3orm.core import Porm
-from p3orm.exceptions import MultipleObjectsReturned
+from p3orm.exceptions import (
+    InvalidRelationship,
+    MissingPrimaryKey,
+    MissingRelationship,
+    MissingTablename,
+    MultipleObjectsReturned,
+)
 from p3orm.types import Annotation, Model
 from p3orm.utils import with_returning
 
@@ -56,7 +60,7 @@ class Relationship:
 
     def __new__(cls, *args, **kwargs):
         if cls is Relationship:
-            raise Exception(f"can only use {[sc.__name__ for sc in cls.__subclasses__()]}")
+            raise BaseRelationshipInstanceException(f"can only use {[sc.__name__ for sc in cls.__subclasses__()]}")
         super().__new__(cls, *args, **kwargs)
 
     def __init__(self, /, table: Type[Table], *, self_field: str, other_field: str):
@@ -80,13 +84,11 @@ class Table:
     #
     # Magic
     #
-    def __new__(cls: Type[Model], /, **create_fields) -> Model:
+    def __new__(cls: Type[Model] | Table, /, **create_fields) -> Model:
         return cls._create_model_factory()(**create_fields)
 
     @classmethod
-    def _create_model_factory(cls) -> Type[Model]:
-
-        types = get_type_hints(cls)
+    def _create_model_factory(cls: Table) -> Type[Model]:
 
         factory_model_kwargs = {}
         for field_name, field in cls._field_map().items():
@@ -96,12 +98,12 @@ class Table:
 
     def __init_subclass__(cls) -> None:
         if not hasattr(cls, "__tablename__") or cls.__tablename__ is None:
-            raise Exception(f"{cls.__name__} must define a __tablename__ property")
+            raise MissingTablename(f"{cls.__name__} must define a __tablename__ property")
 
         fields = cls._fields()
 
         if len([f for f in fields if f.pk]) != 1:
-            raise Exception(f"{cls.__name__} is missing a primary key")
+            raise MissingPrimaryKey(f"{cls.__name__} is missing a primary key")
 
     #
     # Introspective methods
@@ -118,7 +120,7 @@ class Table:
             if relationship == _relationship:
                 return field_name
 
-        raise Exception(f"{relationship=} does not exist on {cls=}")
+        raise MissingRelationship(f"{relationship=} does not exist on {cls=}")
 
     @classmethod
     def _fields(cls, exclude_autogen: Optional[bool] = False) -> list[PormField]:
@@ -184,7 +186,7 @@ class Table:
 
     @classmethod
     async def fetch_first(
-        cls: Type[Model] | Table, /, criterion: BasicCriterion, *, prefetch: tuple[tuple[Relationship]] = None
+        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[Relationship]] = None
     ) -> Optional[Model]:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(1)
@@ -197,7 +199,7 @@ class Table:
 
     @classmethod
     async def fetch_one(
-        cls: Type[Model] | Table, /, criterion: BasicCriterion, *, prefetch: tuple[tuple[Relationship]] = None
+        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[Relationship]] = None
     ) -> Model:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
@@ -231,7 +233,7 @@ class Table:
     async def fetch_many(
         cls: Type[Model] | Table,
         /,
-        criterion: BasicCriterion,
+        criterion: Criterion,
         *,
         prefetch: tuple[tuple[Relationship]] = None,
     ) -> list[Model]:
@@ -246,7 +248,7 @@ class Table:
     @classmethod
     async def update_one(cls: Type[Model] | Table, /, item: Model) -> Model:
 
-        query: QueryBuilder = Query.update(cls.__tablename__)
+        query: QueryBuilder = Query().update(cls.__tablename__)
 
         for field in cls._fields():
             query = query.set(field.name, getattr(item, field.name))
@@ -256,6 +258,14 @@ class Table:
         query = query.where(pk == getattr(item, pk.name))
 
         return await Porm.fetch_one(with_returning(query), cls)
+
+    @classmethod
+    async def delete(cls: Type[Model] | Table, /, criterion: Criterion) -> list[Model]:
+
+        query: QueryBuilder = QueryBuilder().delete()
+        query = query.from_(cls.__tablename__)
+        query = query.where(criterion)
+        return await Porm.fetch_many(with_returning(query), cls)
 
     @classmethod
     async def fetch_related(
@@ -316,4 +326,4 @@ class Table:
                 await cls.fetch_related(sub_items, relationships[1:])
 
             else:
-                raise Exception("can only use ReverseRelationship and ForeignKeyRelationship")
+                raise InvalidRelationship("can only use ReverseRelationship and ForeignKeyRelationship")
