@@ -6,8 +6,8 @@ authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
 keywords = ["postgres", "async", "orm"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/rafalstapinski/porm"
-repository = "https://github.com/rafalstapinski/porm"
+homepage = "https://github.com/rafalstapinski/p3orm"
+repository = "https://github.com/rafalstapinski/p3orm"
 
 [tool.poetry.dependencies]
 python = "^3.10"
