@@ -1,4 +1,4 @@
-from typing import Any, List, Type
+from typing import Any, Dict, List, Type
 
 from asyncpg import Connection, Record, connect
 from pypika.queries import QueryBuilder
@@ -20,7 +20,7 @@ class _Porm:
         database: str = None,
         host: str = None,
         port: int = None,
-        **asyncpg_kwargs: dict[str, Any]
+        **asyncpg_kwargs: Dict[str, Any]
     ):
         self.connection = await connect(
             dsn=dsn,
