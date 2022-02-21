@@ -2,11 +2,9 @@
   // Python
   "python.formatting.blackPath": ".venv/bin/black",
   "python.linting.mypyPath": ".venv/bin/mypy",
-  "python.formatting.provider": "black",
   "python.linting.mypyEnabled": false,
   "python.languageServer": "Pylance",
   // Editor
-  "editor.formatOnSave": true,
   "git.ignoreLimitWarning": true,
   "files.insertFinalNewline": true,
   // Languages
