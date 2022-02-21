@@ -196,11 +196,19 @@ class Table:
     #
     @classmethod
     def from_(cls) -> QueryBuilder:
-        return Query.from_(cls.__tablename__)
+        return QueryBuilder().from_(cls.__tablename__)
 
     @classmethod
-    def select(cls) -> QueryBuilder:
-        return cls.from_().select("*")
+    def select(cls, to_select: str = "*") -> QueryBuilder:
+        return cls.from_().select(to_select)
+
+    @classmethod
+    def delete(cls) -> QueryBuilder:
+        return QueryBuilder().delete().from_(cls.__tablename__)
+
+    @classmethod
+    def update(cls) -> QueryBuilder:
+        return QueryBuilder().update(cls.__tablename__)
 
     #
     # Queries
@@ -281,7 +289,7 @@ class Table:
     @classmethod
     async def update_one(cls: Type[Model] | Table, /, item: Model) -> Model:
 
-        query: QueryBuilder = Query().update(cls.__tablename__)
+        query: QueryBuilder = QueryBuilder().update(cls.__tablename__)
 
         for field in cls._fields():
             query = query.set(field.name, getattr(item, field.name))
@@ -293,7 +301,7 @@ class Table:
         return await Porm.fetch_one(with_returning(query), cls)
 
     @classmethod
-    async def delete(cls: Type[Model] | Table, /, criterion: Criterion) -> list[Model]:
+    async def delete_where(cls: Type[Model] | Table, /, criterion: Criterion) -> list[Model]:
 
         query: QueryBuilder = QueryBuilder().delete()
         query = query.from_(cls.__tablename__)

@@ -1,6 +1,7 @@
 from typing import Any, Type
 
 from asyncpg import Connection, Record, connect
+from pypika.queries import QueryBuilder
 
 from p3orm.types import Model
 from p3orm.utils import record_to_kwargs
@@ -34,7 +35,11 @@ class _Porm:
     async def disconnect(self):
         await self.connection.close()
 
-    async def fetch_one(self, query: str, table: Type[Model]) -> Model:
+    async def fetch_one(self, query: str | QueryBuilder, table: Type[Model]) -> Model:
+
+        if isinstance(query, QueryBuilder):
+            query = query.get_sql()
+
         resp: Record = await self.connection.fetchrow(query)
 
         if resp is None:
@@ -43,6 +48,10 @@ class _Porm:
         return table(**record_to_kwargs(resp))
 
     async def fetch_many(self, query: str, table: Type[Model]) -> list[Model]:
+
+        if isinstance(query, QueryBuilder):
+            query = query.get_sql()
+
         resp = await self.connection.fetch(query)
         return [table(**record_to_kwargs(row)) for row in resp]
 

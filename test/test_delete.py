@@ -17,7 +17,7 @@ async def test_update_one(postgresql: connection):
 
     await create_base_and_connect(postgresql)
 
-    fetched = await Company.delete(Company.id == 2)
+    fetched = await Company.delete_where(Company.id == 2)
 
     assert len(fetched) == 1
     assert fetched[0].id == 2

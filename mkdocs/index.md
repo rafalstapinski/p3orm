@@ -77,7 +77,7 @@ fetched.name = "Changed"
 
 updated = await Thing.update_one(fetched)
 
-deleted = await Thing.delete(Thing.id == updated.id)
+deleted = await Thing.delete_where(Thing.id == updated.id)
 ```
 
 <h2 >Usage<h2>
