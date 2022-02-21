@@ -309,7 +309,10 @@ class Table:
 
     @classmethod
     async def fetch_related(
-        cls: Union[Type[Model], Table], /, items: List[Model | BaseModel], _relationships: Tuple[Tuple[_Relationship]]
+        cls: Union[Type[Model], Table],
+        /,
+        items: List[Union[Model, BaseModel]],
+        _relationships: Tuple[Tuple[_Relationship]],
     ) -> List[Model]:
 
         items = [i.copy() for i in items]
