@@ -27,7 +27,7 @@
 The remaining 10% is a bit more complicated. p3orm doesn't attempt to hide SQL queries or database interactions behind any magic. Instead, it empowers you to write direct and legible SQL queries with [PyPika](https://github.com/kayak/pypika) and execute them explicitly against the database.
 
 
-### Object created or fetched by p3orm are dead, they're just [Pydantic](https://github.com/samuelcolvin/pydantic) models. If you want to interact with the database, you do so explicitly.
+### Objects created or fetched by p3orm are dead, they're just [Pydantic](https://github.com/samuelcolvin/pydantic) models. If you want to interact with the database, you do so explicitly.
 
 <h2>Features</h2>
 
