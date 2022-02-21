@@ -4,7 +4,7 @@ from copy import deepcopy
 from enum import Enum
 from typing import Any, Generic, NoReturn, Optional, Type, TypeVar, get_type_hints
 
-from pydantic import BaseConfig
+from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model
 from pypika import Query
 from pypika.queries import QueryBuilder
@@ -302,8 +302,10 @@ class Table:
 
     @classmethod
     async def fetch_related(
-        cls: Type[Model] | Table, /, items: list[Model], _relationships: tuple[tuple[_Relationship]]
-    ):
+        cls: Type[Model] | Table, /, items: list[Model | BaseModel], _relationships: tuple[tuple[_Relationship]]
+    ) -> list[Model]:
+
+        items = [i.copy() for i in items]
         relationship_map = cls._relationship_map()
         type_hints = get_type_hints(cls)
 
@@ -362,3 +364,5 @@ class Table:
                         getattr(item, relationship_field_name).append(sub_item)
 
             await cls.fetch_related(sub_items, relationships[1:])
+
+        return items
