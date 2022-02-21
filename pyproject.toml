@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "p3orm"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python PyPika Postgres ORM"
 authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
 keywords = ["postgres", "async", "orm"]
@@ -23,6 +23,8 @@ isort = "^5.9.3"
 pytest-postgresql = "3.1.3"
 psycopg2-binary = "^2.9.3"
 pytest-asyncio = "^0.18.1"
+mkdocs = "^1.2.3"
+mkdocs-material = "^8.2.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

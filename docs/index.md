@@ -1,7 +1,7 @@
 # p3orm
 
 
-<img src="https://github.com/rafalstapinski/p3orm/blob/master/docs/img/logo.svg?raw=true" alt="p3orm logo" />
+<img src="img/logo.svg" alt="p3orm logo" />
 
 <p align="center"><strong><em>Utilitarian Python ORM for Postgres, backed by <a
                 href="https://github.com/MagicStack/asyncpg">asyncpg</a>, <a
