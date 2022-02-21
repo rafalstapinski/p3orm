@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from enum import Enum
-from typing import Any, Generic, NoReturn, Optional, Type, TypeVar, get_type_hints
+from typing import Any, NoReturn, Optional, Type, get_type_hints
 
 from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model

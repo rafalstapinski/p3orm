@@ -21,16 +21,16 @@
   // Actions
   "emeraldwalk.runonsave": {
     "commands": [
-      {
-        "cmd": ".venv/bin/isort -sp pyproject.toml ${file}",
-        "isAsync": true,
-        "match": "\\.py$"
-      },
-      {
-        "cmd": ".venv/bin/black --config pyproject.toml ${file}",
-        "isAsync": true,
-        "match": "\\.py$"
-      }
+      // {
+      //   "cmd": ".venv/bin/isort --sp pyproject.toml ${file}",
+      //   "isAsync": true,
+      //   "match": "\\.py$"
+      // },
+      // {
+      //   "cmd": ".venv/bin/black --config pyproject.toml ${file}",
+      //   "isAsync": true,
+      //   "match": "\\.py$"
+      // }
     ]
   },
   "python.testing.pytestArgs": [

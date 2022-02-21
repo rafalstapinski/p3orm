@@ -42,8 +42,14 @@ jobs:
       # Install deps
       - run: poetry install
 
+      # Cache
+      - uses: actions/cache@v2
+
       # Test
       - run: poetry run pytest test
 
-      # - name: Cache
-      # - uses: actions/cache@v2
+      # isort
+      - run: poetry run isort --sp pyproject.toml --check .
+
+      # black
+      - run: poetry run black --config pyproject.toml --check .
