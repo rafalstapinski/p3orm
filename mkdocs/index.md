@@ -1,23 +1,27 @@
 # p3orm
 
-
-<img src="https://rafalstapinski.github.io/p3orm/img/logo.svg" alt="p3orm logo" />
-
-<p align="center"><strong><em>Utilitarian Python ORM for Postgres, backed by <a
-                href="https://github.com/MagicStack/asyncpg">asyncpg</a>, <a
-                href="https://github.com/samuelcolvin/pydantic">Pydantic</a> and <a
-                href="https://github.com/kayak/pypika">PyPika</a></em></strong></p>
+<a href="https://rafalstapinski.github.io/p3orm">
+  <img src="https://rafalstapinski.github.io/p3orm/img/logo.svg" alt="p3orm logo" />
+</a>
 
 <p align="center">
-    <a href="https://github.com/rafalstapinski/porm/actions/workflows/test.yml" target="_blank">
-        <img src="https://github.com/rafalstapinski/porm/actions/workflows/test.yml/badge.svg" alt="Test" />
-    </a>
-    <a href="https://pypi.org/project/p3orm" target="_blank">
-        <img src="https://img.shields.io/pypi/v/p3orm?color=%2334D058" alt="pypi" />
-    </a>
-    <a href="https://pypi.org/project/p3orm" target="_blank">
-        <img src="https://img.shields.io/pypi/pyversions/p3orm?color=%23334D058" alt="Test" />
-    </a>
+  <strong>
+    <em>
+      Utilitarian Python ORM for Postgres, backed by <a href="https://github.com/MagicStack/asyncpg">asyncpg</a>, <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> and <a href="https://github.com/kayak/pypika">PyPika</a>
+    </em>
+  </strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/rafalstapinski/porm/actions/workflows/test.yml" target="_blank">
+    <img src="https://github.com/rafalstapinski/porm/actions/workflows/test.yml/badge.svg" alt="Test" />
+  </a>
+  <a href="https://pypi.org/project/p3orm" target="_blank">
+    <img src="https://img.shields.io/pypi/v/p3orm?color=%2334D058" alt="pypi" />
+  </a>
+  <a href="https://pypi.org/project/p3orm" target="_blank">
+    <img src="https://img.shields.io/pypi/pyversions/p3orm?color=%23334D058" alt="Test" />
+  </a>
 </p>
 
 <h2>Philosophy</h2>
@@ -36,9 +40,7 @@ The remaining 10% is a bit more complicated. p3orm doesn't attempt to hide SQL q
 - Full support for PyPika queries
 - Support for all `asyncpg` [types](https://magicstack.github.io/asyncpg/current/usage.html#type-conversion)
 
-<h2>
-    Installation
-</h2>
+<h2>Installation</h2>
 
 Install with `poetry`
 ```sh
@@ -80,6 +82,6 @@ updated = await Thing.update_one(fetched)
 deleted = await Thing.delete_where(Thing.id == updated.id)
 ```
 
-<h2 >Usage<h2>
+<h2>Usage</h2>
 
-See [docs](https://rafalstapinski.github.io/p3orm)
+See <a href="https://rafalstapinski.github.io/p3orm">docs</a>

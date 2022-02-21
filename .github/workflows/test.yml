@@ -42,9 +42,6 @@ jobs:
       # Install deps
       - run: poetry install
 
-      # Cache
-      - uses: actions/cache@v2
-
       # Test
       - run: poetry run pytest test
 
