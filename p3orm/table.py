@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, NoReturn, Optional, Type, get_type_hints
+from typing import Any, Dict, List, NoReturn, Optional, Tuple, Type, Union, get_type_hints
 
 from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model
@@ -64,7 +64,7 @@ def Column(
     *,
     pk: Optional[bool] = False,
     autogen: Optional[bool] = False,
-) -> T | PormField:
+) -> Union[T, PormField]:
     return PormField(
         _type=_type,
         name=name,
@@ -114,7 +114,7 @@ class Table:
     #
     # Magic
     #
-    def __new__(cls: Type[Model] | Table, /, **_create_fields: dict[str, Any]) -> Model:
+    def __new__(cls: Union[Type[Model], Table], /, **_create_fields: Dict[str, Any]) -> Model:
 
         create_fields = deepcopy(_create_fields)
 
@@ -148,7 +148,7 @@ class Table:
     # Introspective methods
     #
     @classmethod
-    def _relationship_map(cls) -> dict[str, _Relationship]:
+    def _relationship_map(cls) -> Dict[str, _Relationship]:
         return {
             name: relationship for name in cls.__dict__ if isinstance(relationship := getattr(cls, name), _Relationship)
         }
@@ -162,21 +162,21 @@ class Table:
         raise MissingRelationship(f"Relationship {relationship} does not exist on {cls.__name__}")
 
     @classmethod
-    def _fields(cls, exclude_autogen: Optional[bool] = False) -> list[PormField]:
+    def _fields(cls, exclude_autogen: Optional[bool] = False) -> List[PormField]:
         fields = [field for field_name in cls.__dict__ if isinstance(field := getattr(cls, field_name), PormField)]
         if exclude_autogen:
             fields = [f for f in fields if not f.autogen]
         return fields
 
     @classmethod
-    def _field_map(cls, exclude_autogen: Optional[bool] = False) -> dict[str, PormField]:
+    def _field_map(cls, exclude_autogen: Optional[bool] = False) -> Dict[str, PormField]:
         fields = {
             field_name: field for field_name in cls.__dict__ if isinstance(field := getattr(cls, field_name), PormField)
         }
         return fields
 
     @classmethod
-    def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> list[Any]:
+    def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> List[Any]:
         return [getattr(item, field.name) for field in cls._fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
@@ -213,7 +213,7 @@ class Table:
     # Queries
     #
     @classmethod
-    async def insert_one(cls: Type[Model] | Table, /, item: Model) -> Model:
+    async def insert_one(cls: Union[Type[Model], Table], /, item: Model) -> Model:
 
         query: QueryBuilder = (
             Query.into(cls.__tablename__)
@@ -223,7 +223,7 @@ class Table:
         return await Porm.fetch_one(with_returning(query), cls)
 
     @classmethod
-    async def insert_many(cls: Type[Model] | Table, /, items: list[Model]) -> list[Model]:
+    async def insert_many(cls: Union[Type[Model], Table], /, items: List[Model]) -> List[Model]:
         query: QueryBuilder = Query.into(cls.__tablename__).columns(*cls._fields(exclude_autogen=True))
 
         for item in items:
@@ -233,7 +233,7 @@ class Table:
 
     @classmethod
     async def fetch_first(
-        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[_Relationship]] = None
+        cls: Union[Type[Model], Table], /, criterion: Criterion, *, prefetch: Tuple[Tuple[_Relationship]] = None
     ) -> Optional[Model]:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(1)
@@ -246,7 +246,7 @@ class Table:
 
     @classmethod
     async def fetch_one(
-        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[_Relationship]] = None
+        cls: Union[Type[Model], Table], /, criterion: Criterion, *, prefetch: Tuple[Tuple[_Relationship]] = None
     ) -> Model:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
@@ -266,12 +266,12 @@ class Table:
 
     @classmethod
     async def fetch_all(
-        cls: Type[Model] | Table,
+        cls: Union[Type[Model], Table],
         /,
         criterion: Criterion = None,
         *,
-        prefetch: tuple[tuple[_Relationship]] = None,
-    ) -> list[Model]:
+        prefetch: Tuple[Tuple[_Relationship]] = None,
+    ) -> List[Model]:
 
         query: QueryBuilder = cls.select()
 
@@ -286,7 +286,7 @@ class Table:
         return results
 
     @classmethod
-    async def update_one(cls: Type[Model] | Table, /, item: Model) -> Model:
+    async def update_one(cls: Union[Type[Model], Table], /, item: Model) -> Model:
 
         query: QueryBuilder = QueryBuilder().update(cls.__tablename__)
 
@@ -300,7 +300,7 @@ class Table:
         return await Porm.fetch_one(with_returning(query), cls)
 
     @classmethod
-    async def delete_where(cls: Type[Model] | Table, /, criterion: Criterion) -> list[Model]:
+    async def delete_where(cls: Union[Type[Model], Table], /, criterion: Criterion) -> List[Model]:
 
         query: QueryBuilder = QueryBuilder().delete()
         query = query.from_(cls.__tablename__)
@@ -309,8 +309,8 @@ class Table:
 
     @classmethod
     async def fetch_related(
-        cls: Type[Model] | Table, /, items: list[Model | BaseModel], _relationships: tuple[tuple[_Relationship]]
-    ) -> list[Model]:
+        cls: Union[Type[Model], Table], /, items: List[Model | BaseModel], _relationships: Tuple[Tuple[_Relationship]]
+    ) -> List[Model]:
 
         items = [i.copy() for i in items]
         relationship_map = cls._relationship_map()

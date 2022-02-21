@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pytest import param
-
 from p3orm.core import Porm
 
 if TYPE_CHECKING:

@@ -1,4 +1,4 @@
-from typing import Any, Type
+from typing import Any, List, Type
 
 from asyncpg import Connection, Record, connect
 from pypika.queries import QueryBuilder
@@ -47,7 +47,7 @@ class _Porm:
 
         return table(**record_to_kwargs(resp))
 
-    async def fetch_many(self, query: str, table: Type[Model]) -> list[Model]:
+    async def fetch_many(self, query: str, table: Type[Model]) -> List[Model]:
 
         if isinstance(query, QueryBuilder):
             query = query.get_sql()

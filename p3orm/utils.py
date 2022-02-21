@@ -1,10 +1,10 @@
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import asyncpg
 from pypika.queries import QueryBuilder
 
 
-def record_to_kwargs(record: asyncpg.Record) -> dict[str, Any]:
+def record_to_kwargs(record: asyncpg.Record) -> Dict[str, Any]:
     return {k: v for k, v in record.items()}
 
 
