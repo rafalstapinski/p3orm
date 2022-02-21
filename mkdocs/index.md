@@ -22,22 +22,19 @@
 
 <h2>Philosophy</h2>
 
-<p>
-    90% of the time we talk to a database is with a CRUD operation. porm provides convenience helpers for fetching (one, first, many), inserting (one, many), updating (one), and deleting (one, many).
+90% of the time we talk to a database is with a CRUD operation. porm provides convenience helpers for fetching (one, first, many), inserting (one, many), updating (one), and deleting (one, many).
 
-    The remaining 10% is a bit more complicated. porm doesn't attempt to hide SQL queries or database interactions behind any magic. Instead, it empowers you to write direct and legible SQL queries with <a href="https://github.com/kayak/pypika">PyPika</a> and execute them explicitly against the database.
+The remaining 10% is a bit more complicated. porm doesn't attempt to hide SQL queries or database interactions behind any magic. Instead, it empowers you to write direct and legible SQL queries with [PyPika](https://github.com/kayak/pypika) and execute them explicitly against the database.
 
-</p>
-<h3>
-    Object created or fetched by p3orm are dead, they're just <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> models. If you want to manipulate the database, you do so explicitly.
-</h3>
+
+### Object created or fetched by p3orm are dead, they're just [Pydantic](https://github.com/samuelcolvin/pydantic) models. If you want to interact with the database, you do so explicitly.
 
 <h2>Features</h2>
 
 - Comprehensive type annotations (full intellisense support)
 - Type validation
 - Full support for PyPika queries
-- Support for all `asyncpg` <a href="https://magicstack.github.io/asyncpg/current/usage.html#type-conversion">types</a>
+- Support for all `asyncpg` [types](https://magicstack.github.io/asyncpg/current/usage.html#type-conversion)
 
 <h2>
     Installation

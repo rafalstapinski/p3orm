@@ -214,9 +214,40 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          About
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="." class="md-nav__link md-nav__link--active">
         About
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#object-created-or-fetched-by-p3orm-are-dead-theyre-just-pydantic-models-if-you-want-to-interact-with-the-database-you-do-so-explicitly" class="md-nav__link">
+    Object created or fetched by p3orm are dead, they're just Pydantic models. If you want to interact with the database, you do so explicitly.
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -347,6 +378,21 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#object-created-or-fetched-by-p3orm-are-dead-theyre-just-pydantic-models-if-you-want-to-interact-with-the-database-you-do-so-explicitly" class="md-nav__link">
+    Object created or fetched by p3orm are dead, they're just Pydantic models. If you want to interact with the database, you do so explicitly.
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -384,16 +430,9 @@
 
 <h2>Philosophy</h2>
 
-<p>
-    90% of the time we talk to a database is with a CRUD operation. porm provides convenience helpers for fetching (one, first, many), inserting (one, many), updating (one), and deleting (one, many).
-
-    The remaining 10% is a bit more complicated. porm doesn't attempt to hide SQL queries or database interactions behind any magic. Instead, it empowers you to write direct and legible SQL queries with <a href="https://github.com/kayak/pypika">PyPika</a> and execute them explicitly against the database.
-
-</p>
-<h3>
-    Object created or fetched by p3orm are dead, they're just <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> models. If you want to manipulate the database, you do so explicitly.
-</h3>
-
+<p>90% of the time we talk to a database is with a CRUD operation. porm provides convenience helpers for fetching (one, first, many), inserting (one, many), updating (one), and deleting (one, many).</p>
+<p>The remaining 10% is a bit more complicated. porm doesn't attempt to hide SQL queries or database interactions behind any magic. Instead, it empowers you to write direct and legible SQL queries with <a href="https://github.com/kayak/pypika">PyPika</a> and execute them explicitly against the database.</p>
+<h3 id="object-created-or-fetched-by-p3orm-are-dead-theyre-just-pydantic-models-if-you-want-to-interact-with-the-database-you-do-so-explicitly">Object created or fetched by p3orm are dead, they're just <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> models. If you want to interact with the database, you do so explicitly.</h3>
 <h2>Features</h2>
 
 <ul>
