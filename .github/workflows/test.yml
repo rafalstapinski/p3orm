@@ -41,7 +41,10 @@ jobs:
         run: which poetry
         run: poetry --version
 
-      - run: which pg_config
+      - name: Check pg_config
+       run: which pg_config
+
+      - name: Test
       - run: poetry run pytest test
 
       # - name: Cache
