@@ -4,10 +4,6 @@
   "python.linting.mypyPath": ".venv/bin/mypy",
   "python.formatting.provider": "black",
   "python.linting.mypyEnabled": false,
-  "python.formatting.blackArgs": [
-    "--line-length",
-    "120"
-  ],
   "python.languageServer": "Pylance",
   // Editor
   "editor.formatOnSave": true,
@@ -29,6 +25,11 @@
     "commands": [
       {
         "cmd": ".venv/bin/isort -sp pyproject.toml ${file}",
+        "isAsync": true,
+        "match": "\\.py$"
+      },
+      {
+        "cmd": ".venv/bin/black --config pyproject.toml ${file}",
         "isAsync": true,
         "match": "\\.py$"
       }
