@@ -1,5 +1,7 @@
 # porm
 
+![Test](https://github.com/rafalstapinski/porm/actions/workflows/test.yml/badge.svg)
+
 Minimal PostgreSQL Python ORM, backed by [asyncpg](https://github.com/MagicStack/asyncpg), [Pydantic](https://github.com/samuelcolvin/pydantic), and [PyPika](https://github.com/kayak/pypika). 
 
 ## Philosophy
@@ -8,14 +10,13 @@ Minimal PostgreSQL Python ORM, backed by [asyncpg](https://github.com/MagicStack
 
 The remaining 10% is a bit more complicated. porm doesn't attempt to hide SQL queries behind any magic, instead it empowers you to write direct, explicit, and legible SQL queries with [PyPika](https://github.com/kayak/pypika).
 
-Object created or fetched by porm are **dead**, they're just (currently) Pydantic models. If you want to manipulate the database, you do so explicitly.
+Object created or fetched by porm are **dead**, they're just Pydantic models. If you want to manipulate the database, you do so explicitly.
 
 
 ## Roadmap
 
 - [x] Annotation type definition
 - [x] Relationships
-- [ ] Filter annotations when class and when instance
-- [ ] Tests
+- [x] Tests
 - [ ] Pool
-- [ ] Look into [attrs](https://github.com/python-attrs/attrs) over pydantic (does this actually need type *validation*)
+- [ ] Filter annotations when class and when instance
