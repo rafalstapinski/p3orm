@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from datetime import datetime
 
-from p3orm.table import Column, Table
+from p3orm.table import Column, ForeignKeyRelationship, ReverseRelationship, Table
 
 
 class Company(Table):
@@ -11,6 +13,8 @@ class Company(Table):
     name = Column(str, "name")
     created_at = Column(datetime, "created_at", autogen=True)
 
+    employees: list[Employee] = ReverseRelationship(self_field="id", other_field="company_id")
+
 
 class Employee(Table):
 
@@ -20,6 +24,8 @@ class Employee(Table):
     name = Column(str, "name")
     company_id = Column(int, "company_id")
     created_at = Column(datetime, "created_at", autogen=True)
+
+    company: Company = ForeignKeyRelationship(self_field="company_id", other_field="id")
 
 
 class OrgChart(Table):

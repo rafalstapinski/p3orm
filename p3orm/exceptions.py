@@ -28,3 +28,7 @@ class DatabaseException(PormException):
 
 class InvalidRelationship(PormException):
     ...
+
+
+class UnloadedRelationship(PormException):
+    ...

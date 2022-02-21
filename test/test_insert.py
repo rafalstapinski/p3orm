@@ -60,7 +60,7 @@ async def test_insert_many(postgresql: connection):
     to_insert = [Company(name="Company 5"), Company(name="Company 6"), Company(name="Company 7")]
 
     created = await Company.insert_many(to_insert)
-    fetched = await Company.fetch_many(Company.id.isin([5, 6, 7]))
+    fetched = await Company.fetch_all(Company.id.isin([5, 6, 7]))
 
     assert created == fetched
 

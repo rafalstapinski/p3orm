@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import TYPE_CHECKING
+from unittest import result
 
 import pytest
 
 from p3orm.exceptions import MultipleResultsReturned, NoResultsReturned
 
 from test.fixtures.helpers import create_base_and_connect
-from test.fixtures.tables import Company
+from test.fixtures.tables import Company, Employee
 
 if TYPE_CHECKING:
     from psycopg2 import connection
@@ -28,11 +29,11 @@ async def test_fetch_all(postgresql: connection):
 
 
 @pytest.mark.asyncio
-async def test_fetch_many_filtering(postgresql: connection):
+async def test_fetch_all_filtering(postgresql: connection):
 
     await create_base_and_connect(postgresql)
 
-    companies = await Company.fetch_many(Company.id < 3)
+    companies = await Company.fetch_all(Company.id < 3)
 
     assert len(companies) == 2
     assert [c.id for c in companies] == [1, 2]
@@ -91,7 +92,7 @@ async def test_fetch_one_fails_with_none(postgresql: connection):
 
 
 @pytest.mark.asyncio
-async def fetch_first_returns_none(postgresql: connection):
+async def test_fetch_first_returns_none(postgresql: connection):
 
     await create_base_and_connect(postgresql)
 
@@ -101,10 +102,10 @@ async def fetch_first_returns_none(postgresql: connection):
 
 
 @pytest.mark.asyncio
-async def fetch_many_returns_empty(postgresql: connection):
+async def test_fetch_all_returns_empty(postgresql: connection):
 
     await create_base_and_connect(postgresql)
 
-    results = await Company.fetch_many(Company.id == 100)
+    results = await Company.fetch_all(Company.id == 100)
 
     assert results == []
