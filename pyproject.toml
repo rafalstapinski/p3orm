@@ -10,7 +10,7 @@ homepage = "https://rafalstapinski.github.io/p3orm"
 repository = "https://github.com/rafalstapinski/p3orm"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 PyPika = "^0.48.8"
 asyncpg = "^0.24.0"
 pydantic = "^1.8.2"

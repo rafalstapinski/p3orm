@@ -12,6 +12,10 @@ jobs:
     services:
       postgres:
         image: postgres:11
+    
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
       # Check out
@@ -20,7 +24,7 @@ jobs:
       # Set up Python
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.10.0'
+          python-version: ${{ matrix.python-version }}
       
       # Install postgresql
       - run: |
