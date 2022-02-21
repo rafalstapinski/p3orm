@@ -79,3 +79,7 @@ updated = await Thing.update_one(fetched)
 
 deleted = await Thing.delete(Thing.id == updated.id)
 ```
+
+<h2 >Usage<h2>
+
+See [https://rafalstapinski.github.io/p3orm](docs)
