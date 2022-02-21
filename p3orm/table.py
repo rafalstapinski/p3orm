@@ -226,7 +226,7 @@ class Table:
 
     @classmethod
     async def fetch_first(
-        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[Relationship]] = None
+        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[_Relationship]] = None
     ) -> Optional[Model]:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(1)
@@ -239,7 +239,7 @@ class Table:
 
     @classmethod
     async def fetch_one(
-        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[Relationship]] = None
+        cls: Type[Model] | Table, /, criterion: Criterion, *, prefetch: tuple[tuple[_Relationship]] = None
     ) -> Model:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
