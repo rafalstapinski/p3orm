@@ -1,6 +1,8 @@
 site_name: p3orm
 repo_url: https://github.com/rafalstapinski/p3orm
 repo_name: stapinskirafal/p3orm
+docs_dir: mkdocs
+site_dir: docs
 
 nav:
   - About: index.md
