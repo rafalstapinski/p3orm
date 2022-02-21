@@ -1,7 +1,7 @@
 # p3orm
 
 
-<img src="https://github.com/rafalstapinski/p3orm/blob/master/docs/img/logo.svg?raw=true" alt="p3orm logo" />
+<img src="https://rafalstapinski.github.io/p3orm/img/logo.svg" alt="p3orm logo" />
 
 <p align="center"><strong><em>Utilitarian Python ORM for Postgres, backed by <a
                 href="https://github.com/MagicStack/asyncpg">asyncpg</a>, <a
@@ -23,22 +23,21 @@
 <h2>Philosophy</h2>
 
 <p>
-    90% of the time we talk to a database is with a CRUD operation. porm provides convenience helpers for fetching (one,
-    first, many), inserting (one, many), updating (one), and deleting (one, many).
+    90% of the time we talk to a database is with a CRUD operation. porm provides convenience helpers for fetching (one, first, many), inserting (one, many), updating (one), and deleting (one, many).
 
-    The remaining 10% is a bit more complicated. porm doesn't attempt to hide SQL queries behind any magic, instead it
-    empowers you to write direct, explicit, and legible SQL queries with [PyPika](https://github.com/kayak/pypika).
+    The remaining 10% is a bit more complicated. porm doesn't attempt to hide SQL queries or database interactions behind any magic. Instead, it empowers you to write direct and legible SQL queries with <a href="https://github.com/kayak/pypika">PyPika</a> and execute them explicitly against the database.
 
-    Object created or fetched by p3orm are **dead**, they're just Pydantic models. If you want to manipulate the
-    database,
-    you do so explicitly.
 </p>
+<h3>
+    Object created or fetched by p3orm are dead, they're just <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> models. If you want to manipulate the database, you do so explicitly.
+</h3>
 
 <h2>Features</h2>
 
 - Comprehensive type annotations (full intellisense support)
 - Type validation
 - Full support for PyPika queries
+- Support for all `asyncpg` <a href="https://magicstack.github.io/asyncpg/current/usage.html#type-conversion">types</a>
 
 <h2>
     Installation
