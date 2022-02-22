@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from p3orm.core import Porm
 
 if TYPE_CHECKING:
@@ -31,11 +33,27 @@ def create_base(postgresql: connection):
     create_base_data(postgresql)
 
 
+@pytest.fixture(scope="function")
 async def create_base_and_connect(postgresql: connection):
     create_base(postgresql)
     dsn_params = postgresql.get_dsn_parameters()
 
     await Porm.connect(
+        user=dsn_params.get("user"),
+        password=dsn_params.get("password"),
+        database=dsn_params.get("dbname"),
+        host=dsn_params.get("host"),
+        port=dsn_params.get("port"),
+    )
+
+    yield
+
+    await Porm.disconnect()
+
+
+def _get_connection_kwargs(postgresql: connection):
+    dsn_params = postgresql.get_dsn_parameters()
+    return dict(
         user=dsn_params.get("user"),
         password=dsn_params.get("password"),
         database=dsn_params.get("dbname"),

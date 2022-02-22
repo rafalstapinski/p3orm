@@ -42,7 +42,9 @@ child.parent # <p3orm.table.UNLOADED>
 child.parent # <Parent>
 ```
 
-`fetch_related` accepts a `tuple[tuple[Relationship]]` to allow for fetching multiple relationships and deeply nested relationships. The API of `fetch_related` will be simplified in an upcoming release to accept a wider range of more convenient model and relationship formats.
+`fetch_related` accepts a `tuple[tuple[Relationship]]` to allow for fetching multiple relationships and deeply nested relationships.
+
+<em>Note: The API of</em> `fetch_related` <em>will be simplified in an upcoming release to accept a wider range of more convenient model and relationship formats.</em>
 
 ### Fetching reverse foreign key relationships
 ```python

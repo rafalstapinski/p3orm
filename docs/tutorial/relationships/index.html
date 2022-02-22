@@ -366,8 +366,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection_pool/" class="md-nav__link">
-        Connection Pool
+      <a href="../connecting/" class="md-nav__link">
+        Connecting to the Database
       </a>
     </li>
   
@@ -514,7 +514,8 @@
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">child</span><span class="o">.</span><span class="n">parent</span> <span class="c1"># &lt;Parent&gt;</span>
 </code></pre></div>
-<p><code>fetch_related</code> accepts a <code>tuple[tuple[Relationship]]</code> to allow for fetching multiple relationships and deeply nested relationships. The API of <code>fetch_related</code> will be simplified in an upcoming release to accept a wider range of more convenient model and relationship formats.</p>
+<p><code>fetch_related</code> accepts a <code>tuple[tuple[Relationship]]</code> to allow for fetching multiple relationships and deeply nested relationships.</p>
+<p><em>Note: The API of</em> <code>fetch_related</code> <em>will be simplified in an upcoming release to accept a wider range of more convenient model and relationship formats.</em></p>
 <h3 id="fetching-reverse-foreign-key-relationships">Fetching reverse foreign key relationships</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">parent</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Parent</span><span class="o">.</span><span class="n">fetch_one</span><span class="p">(</span><span class="n">Parent</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>

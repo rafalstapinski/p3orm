@@ -10,7 +10,7 @@ nav:
   - Tutorial:
     - Relationships: tutorial/relationships.md
     - Complex Queries: tutorial/complex_queries.md
-    - Connection Pool: tutorial/connection_pool.md
+    - Connecting to the Database: tutorial/connecting.md
     - Multiple Databases: tutorial/multiple_databases.md
 
 theme:

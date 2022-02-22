@@ -1,20 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
 from test.fixtures.helpers import create_base_and_connect
 from test.fixtures.tables import Company
 
-if TYPE_CHECKING:
-    from psycopg2 import connection
-
 
 @pytest.mark.asyncio
-async def test_update_one(postgresql: connection):
-
-    await create_base_and_connect(postgresql)
+async def test_update_one(create_base_and_connect):
 
     fetched = await Company.fetch_one(Company.id == 1)
 

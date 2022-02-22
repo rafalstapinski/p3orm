@@ -32,3 +32,11 @@ class InvalidRelationship(PormException):
 
 class UnloadedRelationship(PormException):
     ...
+
+
+class AlreadyConnected(PormException):
+    ...
+
+
+class NotConnected(PormException):
+    ...
