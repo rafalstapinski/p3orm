@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "p3orm"
-version = "0.3.1"
+version = "0.3.2"
 description = "Python PyPika Postgres ORM"
 authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
 keywords = ["postgres", "async", "orm"]
