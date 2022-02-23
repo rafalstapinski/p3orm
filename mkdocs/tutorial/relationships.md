@@ -42,9 +42,7 @@ child.parent # <p3orm.table.UNLOADED>
 child.parent # <Parent>
 ```
 
-`fetch_related` accepts a `tuple[tuple[Relationship]]` to allow for fetching multiple relationships and deeply nested relationships.
-
-<em>Note: The API of</em> `fetch_related` <em>will be simplified in an upcoming release to accept a wider range of more convenient model and relationship formats.</em>
+`fetch_related` accepts a `Sequence[Sequence[Relationship]]` to allow for fetching multiple relationships and deeply nested relationships.
 
 ### Fetching reverse foreign key relationships
 ```python
@@ -53,7 +51,7 @@ parent = await Parent.fetch_one(Parent.id == 1)
 
 parent.children # <p3orm.table.UNLOADED>
 
-[parent] = await Parent.fetch_related([parent], ((Parent.children),))
+[parent] = await Parent.fetch_related([parent], [[Parent.children]])
 
 parent.children # <list[Child]>
 ```
@@ -63,7 +61,7 @@ parent.children # <list[Child]>
 
 thing = await Thing.fetch_one(Thing.id == 1)
 
-[thing] = await Thing.fetch_related([thing], ((thing.f1,), (thing.f2,), (thing.rr1)))
+[thing] = await Thing.fetch_related([thing], [thing.f1] [thing.f2], [thing.rr1]])
 
 thing.f1 # <Model>
 thing.f2 # <Model2>
@@ -76,7 +74,7 @@ thing.rr1 # <list[Model3]>
 
 thing = await Thing.fetch_one(Thing.id == 1)
 
-[thing] = await Thing.fetch_related([thing], ((thing.children, thing.children.child)))
+[thing] = await Thing.fetch_related([thing], [[thing.children, thing.children.child]])
 
 thing.children # <list[Child]>
 

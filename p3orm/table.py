@@ -356,7 +356,9 @@ class Table:
                 for item in items:
                     foreign_key = getattr(item, relationship.self_field)
 
+                    # Remove unloaded relationship as it has been fetched
                     if foreign_key is None:
+                        setattr(item, relationship_field_name, None)
                         continue
 
                     setattr(item, relationship_field_name, sub_items_map[foreign_key])
@@ -364,6 +366,7 @@ class Table:
             else:
                 items_map = {getattr(i, relationship.self_field): i for i in items}
 
+                # Attach all loaded sub_items to appropriate item
                 for sub_item in sub_items:
                     foreign_key = getattr(sub_item, relationship.other_field)
                     item = items_map[foreign_key]
@@ -372,6 +375,11 @@ class Table:
                         setattr(item, relationship_field_name, [sub_item])
                     else:
                         getattr(item, relationship_field_name).append(sub_item)
+
+                # Remove UNLOADED relationships as they have now been loaded
+                for item in items:
+                    if isinstance(getattr(item, relationship_field_name), UNLOADED):
+                        setattr(item, relationship_field_name, [])
 
             await cls.fetch_related(sub_items, relationships[1:])
 
