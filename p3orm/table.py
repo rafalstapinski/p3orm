@@ -354,14 +354,13 @@ class Table:
         return await Porm.fetch_many(with_returning(query), cls)
 
     @classmethod
-    async def fetch_related(
+    async def _load_relationships_for_items(
         cls: Union[Type[Model], Table],
         /,
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
     ) -> List[Model]:
 
-        items = [i.copy() for i in items]
         relationship_map = cls._relationship_map()
         type_hints = get_type_hints(cls)
 
@@ -429,4 +428,14 @@ class Table:
 
             await cls.fetch_related(sub_items, relationships[1:])
 
+    @classmethod
+    async def fetch_related(
+        cls: Union[Type[Model], Table],
+        /,
+        items: List[Union[Model, BaseModel]],
+        _relationships: FetchType,
+    ) -> List[Model]:
+
+        items = [i.copy() for i in items]
+        await cls._load_relationships_for_items(items, _relationships)
         return items
