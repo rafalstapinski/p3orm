@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict, List, NoReturn, Optional, Tuple, Type, Union, get_type_hints
+from typing import Any, Dict, List, NoReturn, Optional, Sequence, Type, Union, get_type_hints
 
 from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model
@@ -105,6 +105,9 @@ class ReverseRelationship(_Relationship):
 
 class _TableModelConfig(BaseConfig):
     arbitrary_types_allowed = True
+
+
+FetchType = Sequence[Sequence[_Relationship]]
 
 
 class Table:
@@ -213,40 +216,72 @@ class Table:
     # Queries
     #
     @classmethod
-    async def insert_one(cls: Union[Type[Model], Table], /, item: Model) -> Model:
+    async def insert_one(
+        cls: Union[Type[Model], Table],
+        /,
+        item: Model,
+        *,
+        prefetch: FetchType = None,
+    ) -> Model:
 
         query: QueryBuilder = (
             Query.into(cls.__tablename__)
             .columns(cls._fields(exclude_autogen=True))
             .insert(*cls._db_values(item, exclude_autogen=True))
         )
-        return await Porm.fetch_one(with_returning(query), cls)
+
+        inserted: Optional[Model] = await Porm.fetch_one(with_returning(query), cls)
+
+        if prefetch and inserted:
+            [inserted] = await cls.fetch_related([inserted], prefetch)
+
+        return inserted
 
     @classmethod
-    async def insert_many(cls: Union[Type[Model], Table], /, items: List[Model]) -> List[Model]:
+    async def insert_many(
+        cls: Union[Type[Model], Table],
+        /,
+        items: List[Model],
+        *,
+        prefetch: FetchType = None,
+    ) -> List[Model]:
         query: QueryBuilder = Query.into(cls.__tablename__).columns(*cls._fields(exclude_autogen=True))
 
         for item in items:
             query = query.insert(*cls._db_values(item, exclude_autogen=True))
 
-        return await Porm.fetch_many(with_returning(query), cls)
+        inserted = await Porm.fetch_many(with_returning(query), cls)
+
+        if prefetch and inserted:
+            inserted = await cls.fetch_related(inserted, prefetch)
+
+        return inserted
 
     @classmethod
     async def fetch_first(
-        cls: Union[Type[Model], Table], /, criterion: Criterion, *, prefetch: Tuple[Tuple[_Relationship]] = None
+        cls: Union[Type[Model], Table],
+        /,
+        criterion: Criterion,
+        *,
+        prefetch: FetchType = None,
     ) -> Optional[Model]:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(1)
+
         result = await Porm.fetch_one(query.get_sql(), cls)
 
-        if prefetch:
-            await cls.fetch_related([result], prefetch)
+        if result and prefetch:
+            [result] = await cls.fetch_related([result], prefetch)
 
         return result
 
     @classmethod
     async def fetch_one(
-        cls: Union[Type[Model], Table], /, criterion: Criterion, *, prefetch: Tuple[Tuple[_Relationship]] = None
+        cls: Union[Type[Model], Table],
+        /,
+        criterion: Criterion,
+        *,
+        prefetch: FetchType = None,
     ) -> Model:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
@@ -260,7 +295,7 @@ class Table:
         result = results[0]
 
         if prefetch:
-            await cls.fetch_related([result], prefetch)
+            [result] = await cls.fetch_related([result], prefetch)
 
         return result
 
@@ -270,7 +305,7 @@ class Table:
         /,
         criterion: Criterion = None,
         *,
-        prefetch: Tuple[Tuple[_Relationship]] = None,
+        prefetch: FetchType = None,
     ) -> List[Model]:
 
         query: QueryBuilder = cls.select()
@@ -281,12 +316,18 @@ class Table:
         results = await Porm.fetch_many(query.get_sql(), cls)
 
         if prefetch:
-            await cls.fetch_related(results, prefetch)
+            results = await cls.fetch_related(results, prefetch)
 
         return results
 
     @classmethod
-    async def update_one(cls: Union[Type[Model], Table], /, item: Model) -> Model:
+    async def update_one(
+        cls: Union[Type[Model], Table],
+        /,
+        item: Model,
+        *,
+        prefetch: FetchType = None,
+    ) -> Model:
 
         query: QueryBuilder = QueryBuilder().update(cls.__tablename__)
 
@@ -297,7 +338,12 @@ class Table:
 
         query = query.where(pk == getattr(item, pk.name))
 
-        return await Porm.fetch_one(with_returning(query), cls)
+        updated = await Porm.fetch_one(with_returning(query), cls)
+
+        if prefetch and updated:
+            [updated] = await cls.fetch_related([updated], prefetch)
+
+        return updated
 
     @classmethod
     async def delete_where(cls: Union[Type[Model], Table], /, criterion: Criterion) -> List[Model]:
@@ -312,7 +358,7 @@ class Table:
         cls: Union[Type[Model], Table],
         /,
         items: List[Union[Model, BaseModel]],
-        _relationships: Tuple[Tuple[_Relationship]],
+        _relationships: FetchType,
     ) -> List[Model]:
 
         items = [i.copy() for i in items]

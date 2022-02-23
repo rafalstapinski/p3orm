@@ -6,7 +6,7 @@ import asyncpg
 import pytest
 
 from test.fixtures.helpers import create_base_and_connect
-from test.fixtures.tables import Company
+from test.fixtures.tables import Company, Employee
 
 
 @pytest.mark.asyncio
@@ -80,3 +80,26 @@ async def test_insert_many_ignores_autogen(create_base_and_connect):
 
     assert to_insert[0].name == created[0].name
     assert to_insert[1].name == created[1].name
+
+
+@pytest.mark.asyncio
+async def test_insert_one_prefetch(create_base_and_connect):
+
+    company = await Company.fetch_one(Company.id == 1)
+    to_insert = Employee(name="Person", company_id=company.id)
+
+    created = await Employee.insert_one(to_insert, prefetch=[[Employee.company]])
+
+    assert created.company == company
+
+
+@pytest.mark.asyncio
+async def test_insert_many_prefetch(create_base_and_connect):
+
+    company = await Company.fetch_one(Company.id == 1)
+    to_insert = [Employee(name="Person", company_id=company.id), Employee(name="Person", company_id=company.id)]
+
+    created = await Employee.insert_many(to_insert, prefetch=[[Employee.company]])
+
+    for employee in created:
+        assert employee.company == company

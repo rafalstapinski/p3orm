@@ -7,7 +7,7 @@ import pytest
 from p3orm.exceptions import MultipleResultsReturned, NoResultsReturned
 
 from test.fixtures.helpers import create_base_and_connect
-from test.fixtures.tables import Company
+from test.fixtures.tables import Company, Employee
 
 
 @pytest.mark.asyncio
@@ -86,3 +86,41 @@ async def test_fetch_all_returns_empty(create_base_and_connect):
     results = await Company.fetch_all(Company.id == 100)
 
     assert results == []
+
+
+@pytest.mark.asyncio
+async def test_fetch_one_prefetch(create_base_and_connect):
+
+    company_with_employees = await Company.fetch_one(Company.id == 1, prefetch=[[Company.employees]])
+
+    employees = await Employee.fetch_all(Employee.company_id == company_with_employees.id)
+
+    assert sorted(company_with_employees.employees, key=lambda e: e.id) == sorted(employees, key=lambda e: e.id)
+
+
+@pytest.mark.asyncio
+async def test_fetch_first_prefetch(create_base_and_connect):
+
+    company_with_employees = await Company.fetch_first(Company.id == 1, prefetch=[[Company.employees]])
+
+    employees = await Employee.fetch_all(Employee.company_id == company_with_employees.id)
+
+    assert sorted(company_with_employees.employees, key=lambda e: e.id) == sorted(employees, key=lambda e: e.id)
+
+
+@pytest.mark.asyncio
+async def test_fetch_all_prefetch(create_base_and_connect):
+
+    companies_with_employees = await Company.fetch_all(prefetch=[[Company.employees]])
+
+    first_company_employees = await Employee.fetch_all(Employee.company_id == 1)
+
+    first_company = [c for c in companies_with_employees if c.id == 1][0]
+
+    for company in companies_with_employees:
+        if company.id == 1:
+            assert sorted(first_company.employees, key=lambda e: e.id) == sorted(
+                first_company_employees, key=lambda e: e.id
+            )
+        else:
+            assert company.employees == []
