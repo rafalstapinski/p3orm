@@ -360,12 +360,14 @@ class Table:
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
     ) -> List[Model]:
-
+        """Loads relationships, updates items in place"""
         relationship_map = cls._relationship_map()
         type_hints = get_type_hints(cls)
 
-        # TODO: allow for single depth to not have to specify inside tuple
         for relationships in _relationships:
+            if not relationships:
+                continue
+
             relationship = relationships[0]
 
             relationship_table: Type[Table] = None
@@ -426,7 +428,7 @@ class Table:
                     if isinstance(getattr(item, relationship_field_name), UNLOADED):
                         setattr(item, relationship_field_name, [])
 
-            await cls.fetch_related(sub_items, relationships[1:])
+            await relationship_table._load_relationships_for_items(sub_items, [relationships[1:]])
 
     @classmethod
     async def fetch_related(

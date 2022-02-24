@@ -40,3 +40,15 @@ async def test_fetch_related_clears_unloaded_relationships(create_base_and_conne
     [employee_without_company] = await Employee.fetch_related([employee], [[Employee.company]])
 
     assert employee_without_company.company == None
+
+
+@pytest.mark.asyncio
+async def test_fetch_nested_relationship(create_base_and_connect):
+
+    company = await Company.fetch_one(Company.id == 1)
+    [company] = await Company.fetch_related([company], [[Company.employees, Employee.company]])
+
+    assert len(company.employees) == 5
+
+    for employee in company.employees:
+        assert employee.company.id == company.id
