@@ -12,6 +12,7 @@ nav:
     - Complex Queries: tutorial/complex_queries.md
     - Connecting to the Database: tutorial/connecting.md
     - Multiple Databases: tutorial/multiple_databases.md
+  - Contributing: contributing.md
 
 theme:
   name: material
