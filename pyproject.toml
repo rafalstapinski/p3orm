@@ -43,3 +43,7 @@ asyncio_mode = "auto"
 
 [tool.black]
 line-length = 120
+
+[tool.pylint.messages_control]
+disable = "all"
+enable = "unused-import"
