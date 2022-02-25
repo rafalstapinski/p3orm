@@ -89,7 +89,7 @@ class _Porm:
         if not self.is_connected():
             raise NotConnected("No database connection or pool is established")
 
-        results = []
+        results: List[Record] = []
         if self.connection:
             results = await self.connection.fetch(query)
         elif self.pool:
