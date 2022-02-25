@@ -1,6 +1,6 @@
 """Utilitarian Python ORM for Postgres, backed by asyncpg, Pydantic, and PyPika"""
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 from .core import *
 from .exceptions import *
