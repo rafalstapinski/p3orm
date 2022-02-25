@@ -54,3 +54,6 @@ jobs:
 
       # black
       - run: poetry run black --config pyproject.toml --check .
+
+      # pylint
+      - run: poetry run pylint p3orm/
