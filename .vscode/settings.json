@@ -5,6 +5,8 @@
     "test"
   ],
   "python.testing.pytestEnabled": true,
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
   // Editor
   "git.ignoreLimitWarning": true,
   "files.insertFinalNewline": true,
@@ -30,5 +32,5 @@
         "match": "\\.py$"
       }
     ]
-  }
+  },
 }
