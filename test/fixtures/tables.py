@@ -36,3 +36,6 @@ class OrgChart(Table):
     id = Column(int, "id", pk=True, autogen=True)
     manager_id = Column(int, "manager_id")
     report_id = Column(int, "report_id")
+
+    manager: Employee = ForeignKeyRelationship(self_field="manager_id", other_field="id")
+    report: Employee = ForeignKeyRelationship(self_field="report_id", other_field="id")

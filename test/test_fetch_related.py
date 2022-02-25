@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from test.fixtures.helpers import create_base_and_connect
-from test.fixtures.tables import Company, Employee
+from test.fixtures.tables import Company, Employee, OrgChart
 
 
 @pytest.mark.asyncio
@@ -52,3 +52,16 @@ async def test_fetch_nested_relationship(create_base_and_connect):
 
     for employee in company.employees:
         assert employee.company.id == company.id
+
+
+@pytest.mark.asyncio
+async def test_fetch_multiple_relationships(create_base_and_connect):
+
+    org_rel = await OrgChart.fetch_one(OrgChart.id == 1)
+
+    [org_rel] = await OrgChart.fetch_related([org_rel], [[OrgChart.report], [OrgChart.manager]])
+    employee_1 = await Employee.fetch_one(Employee.id == 1)
+    employee_2 = await Employee.fetch_one(Employee.id == 2)
+
+    assert org_rel.manager == employee_1
+    assert org_rel.report == employee_2
