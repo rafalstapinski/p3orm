@@ -1,18 +1,16 @@
 {
   // Python
-  "python.formatting.blackPath": ".venv/bin/black",
-  "python.linting.mypyPath": ".venv/bin/mypy",
-  "python.linting.mypyEnabled": false,
   "python.languageServer": "Pylance",
+  "python.testing.pytestArgs": [
+    "test"
+  ],
+  "python.testing.pytestEnabled": true,
   // Editor
   "git.ignoreLimitWarning": true,
   "files.insertFinalNewline": true,
   // Languages
   "[python]": {
     "editor.tabSize": 4,
-    "editor.codeActionsOnSave": {
-      "source.fixAll": true,
-    }
   },
   "[json]": {
     "editor.tabSize": 2,
@@ -32,10 +30,5 @@
         "match": "\\.py$"
       }
     ]
-  },
-  "python.testing.pytestArgs": [
-    "test"
-  ],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  }
 }
