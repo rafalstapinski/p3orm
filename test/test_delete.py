@@ -7,7 +7,7 @@ from test.fixtures.tables import Company
 
 
 @pytest.mark.asyncio
-async def test_update_one(create_base_and_connect):
+async def test_delete_one(create_base_and_connect):
 
     fetched = await Company.delete_where(Company.id == 2)
 
