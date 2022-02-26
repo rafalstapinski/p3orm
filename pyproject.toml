@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "p3orm"
 version = "0.3.3"
-description = "Python PyPika Postgres ORM"
+description = "Utilitarian Python ORM for Postgres, backed by asyncpg, Pydantic, and PyPika"
 authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
 keywords = ["postgres", "async", "orm"]
 readme = "README.md"
