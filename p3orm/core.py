@@ -1,11 +1,31 @@
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Sequence, Type, Union
 
 from asyncpg import Connection, Pool, Record, connect, create_pool
+from asyncpg.pool import PoolAcquireContext
 from pypika.queries import QueryBuilder
 
 from p3orm.exceptions import AlreadyConnected, NotConnected
 from p3orm.types import Model
 from p3orm.utils import record_to_kwargs
+
+
+class ConnectionContext:
+
+    connection: Connection
+
+    def __init__(self, connection: Connection):
+        self.connection = connection
+
+    async def __aenter__(self) -> Connection:
+        return self.connection
+
+    async def __aexit__(self, *exc):
+        self.connection = None
+
+
+class PoolConnectionContext(PoolAcquireContext):
+    async def __aenter__(self) -> Connection:
+        return await super().__aenter__()
 
 
 class _Porm:
@@ -77,11 +97,21 @@ class _Porm:
         self.connection = None
         self.pool = None
 
-    async def fetch_one(self, query: Union[str, QueryBuilder], table: Type[Model]) -> Optional[Model]:
-        results = await self.fetch_many(query, table)
+    async def fetch_one(
+        self,
+        cls: Type[Model],
+        query: Union[str, QueryBuilder],
+        query_params: Sequence[Any] = None,
+    ) -> Optional[Model]:
+        results = await self.fetch_many(cls, query, query_params=query_params)
         return None if len(results) == 0 else results[0]
 
-    async def fetch_many(self, query: Union[str, QueryBuilder], table: Type[Model]) -> List[Model]:
+    async def fetch_many(
+        self,
+        cls: Type[Model],
+        query: Union[str, QueryBuilder],
+        query_params: Sequence[Any] = None,
+    ) -> List[Model]:
 
         if isinstance(query, QueryBuilder):
             query = query.get_sql()
@@ -89,15 +119,27 @@ class _Porm:
         if not self.is_connected():
             raise NotConnected("No database connection or pool is established")
 
-        results: List[Record] = []
-        if self.connection:
-            results = await self.connection.fetch(query)
-        elif self.pool:
-            async with self.pool.acquire() as connection:
-                connection: Connection
-                results = await connection.fetch(query)
+        fetch_arguments = [query]
 
-        return [table(**record_to_kwargs(row)) for row in results]
+        if query_params:
+            fetch_arguments += query_params
+
+        results: List[Record] = []
+
+        async with self._acquire_connection() as connection:
+            results = await connection.fetch(*fetch_arguments)
+
+        return [cls(**record_to_kwargs(row)) for row in results]
+
+    def _acquire_connection(self) -> Union[ConnectionContext, PoolConnectionContext]:
+
+        if self.connection:
+            return ConnectionContext(self.connection)
+
+        elif self.pool:
+            return self.pool.acquire()
+
+        raise NotConnected("No database connection or pool is established")
 
     def is_connected(self) -> bool:
 

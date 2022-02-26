@@ -230,7 +230,7 @@ class Table:
             .insert(*cls._db_values(item, exclude_autogen=True))
         )
 
-        inserted: Optional[Model] = await Porm.fetch_one(with_returning(query), cls)
+        inserted: Optional[Model] = await Porm.fetch_one(cls, with_returning(query))
 
         if prefetch and inserted:
             [inserted] = await cls.fetch_related([inserted], prefetch)
@@ -250,7 +250,7 @@ class Table:
         for item in items:
             query = query.insert(*cls._db_values(item, exclude_autogen=True))
 
-        inserted = await Porm.fetch_many(with_returning(query), cls)
+        inserted = await Porm.fetch_many(cls, with_returning(query))
 
         if prefetch and inserted:
             inserted = await cls.fetch_related(inserted, prefetch)
@@ -268,7 +268,7 @@ class Table:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(1)
 
-        result = await Porm.fetch_one(query.get_sql(), cls)
+        result = await Porm.fetch_one(cls, query.get_sql())
 
         if result and prefetch:
             [result] = await cls.fetch_related([result], prefetch)
@@ -285,7 +285,7 @@ class Table:
     ) -> Model:
         query: QueryBuilder = cls.select().where(criterion)
         query = query.limit(2)
-        results = await Porm.fetch_many(query.get_sql(), cls)
+        results = await Porm.fetch_many(cls, query.get_sql())
 
         if len(results) > 1:
             raise MultipleResultsReturned(f"Multiple {cls.__name__} were returned when only one was expected")
@@ -313,7 +313,7 @@ class Table:
         if criterion:
             query = query.where(criterion)
 
-        results = await Porm.fetch_many(query.get_sql(), cls)
+        results = await Porm.fetch_many(cls, query.get_sql())
 
         if prefetch:
             results = await cls.fetch_related(results, prefetch)
@@ -338,7 +338,7 @@ class Table:
 
         query = query.where(pk == getattr(item, pk.name))
 
-        updated = await Porm.fetch_one(with_returning(query), cls)
+        updated = await Porm.fetch_one(cls, with_returning(query))
 
         if prefetch and updated:
             [updated] = await cls.fetch_related([updated], prefetch)
@@ -351,7 +351,7 @@ class Table:
         query: QueryBuilder = QueryBuilder().delete()
         query = query.from_(cls.__tablename__)
         query = query.where(criterion)
-        return await Porm.fetch_many(with_returning(query), cls)
+        return await Porm.fetch_many(cls, with_returning(query))
 
     @classmethod
     async def _load_relationships_for_items(
@@ -395,7 +395,7 @@ class Table:
                 relationship_table._field(relationship.other_field).isin(keys)
             )
 
-            sub_items = await Porm.fetch_many(sub_items_query.get_sql(), relationship_table)
+            sub_items = await Porm.fetch_many(relationship_table, sub_items_query.get_sql())
 
             if isinstance(relationship, ForeignKeyRelationship):
                 sub_items_map = {getattr(i, relationship.other_field): i for i in sub_items}
