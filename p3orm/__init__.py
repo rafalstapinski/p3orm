@@ -1,6 +1,6 @@
 """Utilitarian Python ORM for Postgres, backed by asyncpg, Pydantic, and PyPika"""
 
-__version__ = "0.3.3"
+__version__ = "0.4.0"
 
 from pypika import Order
 
