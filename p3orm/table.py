@@ -5,7 +5,7 @@ from typing import Any, Dict, List, NoReturn, Optional, Sequence, Type, Union, g
 
 from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model
-from pypika import Query
+from pypika import Order, Query
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Field, Parameter
 
@@ -318,6 +318,9 @@ class Table:
         /,
         criterion: Criterion = None,
         *,
+        order: Union[PormField, List[PormField]] = None,
+        by: Order = Order.asc,
+        limit: int = None,
         prefetch: FetchType = None,
     ) -> List[Model]:
 
@@ -327,6 +330,13 @@ class Table:
         if criterion:
             parameterized_criterion, query_args = paramaterize(criterion)
             query = query.where(parameterized_criterion)
+
+        if order:
+            order_fields = order if isinstance(order, list) else [order]
+            query = query.orderby(*[o.name for o in order_fields], order=by)
+
+        if limit:
+            query = query.limit(limit)
 
         results = await Porm.fetch_many(cls, query.get_sql(), query_args)
 

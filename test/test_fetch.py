@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pytest
 
+from p3orm import Order
 from p3orm.exceptions import MultipleResultsReturned, NoResultsReturned
 
 from test.fixtures.helpers import create_base_and_connect
@@ -124,3 +125,22 @@ async def test_fetch_all_prefetch(create_base_and_connect):
             )
         else:
             assert company.employees == []
+
+
+@pytest.mark.asyncio
+async def test_order(create_base_and_connect):
+
+    companies = await Company.fetch_all(Company.id.between(1, 3), order=Company.id, by=Order.desc)
+
+    assert len(companies) == 3
+    assert companies[0].id == 3
+    assert companies[1].id == 2
+    assert companies[2].id == 1
+
+
+@pytest.mark.asyncio
+async def test_limit(create_base_and_connect):
+
+    companies = await Company.fetch_all(limit=2)
+
+    assert len(companies) == 2
