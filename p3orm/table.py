@@ -7,7 +7,7 @@ from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model
 from pypika import Query
 from pypika.queries import QueryBuilder
-from pypika.terms import Criterion, Field
+from pypika.terms import Criterion, Field, Parameter
 
 from p3orm.core import Porm
 from p3orm.exceptions import (
@@ -20,7 +20,7 @@ from p3orm.exceptions import (
     UnloadedRelationship,
 )
 from p3orm.types import Model, T
-from p3orm.utils import with_returning
+from p3orm.utils import paramaterize, with_returning
 
 
 class UNLOADED:
@@ -224,13 +224,14 @@ class Table:
         prefetch: FetchType = None,
     ) -> Model:
 
-        query: QueryBuilder = (
-            Query.into(cls.__tablename__)
-            .columns(cls._fields(exclude_autogen=True))
-            .insert(*cls._db_values(item, exclude_autogen=True))
-        )
+        query: QueryBuilder = Query.into(cls.__tablename__).columns(cls._fields(exclude_autogen=True))
 
-        inserted: Optional[Model] = await Porm.fetch_one(cls, with_returning(query))
+        query_args = cls._db_values(item, exclude_autogen=True)
+        query_params = [Parameter(f"${i + 1}") for i in range(len(query_args))]
+
+        query = query.insert(query_params)
+
+        inserted: Optional[Model] = await Porm.fetch_one(cls, with_returning(query), query_args)
 
         if prefetch and inserted:
             [inserted] = await cls.fetch_related([inserted], prefetch)
@@ -245,12 +246,18 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> List[Model]:
-        query: QueryBuilder = Query.into(cls.__tablename__).columns(*cls._fields(exclude_autogen=True))
 
-        for item in items:
-            query = query.insert(*cls._db_values(item, exclude_autogen=True))
+        columns = cls._fields(exclude_autogen=True)
+        columns_count = len(columns)
+        query: QueryBuilder = Query.into(cls.__tablename__).columns(*columns)
+        query_args: List[Any] = []
 
-        inserted = await Porm.fetch_many(cls, with_returning(query))
+        for page, item in enumerate(items):
+            query_args += cls._db_values(item, exclude_autogen=True)
+            query_params = [Parameter(f"${page * columns_count + offset + 1}") for offset in range(columns_count)]
+            query = query.insert(query_params)
+
+        inserted = await Porm.fetch_many(cls, with_returning(query), query_args)
 
         if prefetch and inserted:
             inserted = await cls.fetch_related(inserted, prefetch)
@@ -265,10 +272,12 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> Optional[Model]:
-        query: QueryBuilder = cls.select().where(criterion)
+
+        paramaterized_criterion, query_args = paramaterize(criterion)
+        query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(1)
 
-        result = await Porm.fetch_one(cls, query.get_sql())
+        result = await Porm.fetch_one(cls, query.get_sql(), query_args=query_args)
 
         if result and prefetch:
             [result] = await cls.fetch_related([result], prefetch)
@@ -283,9 +292,13 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> Model:
-        query: QueryBuilder = cls.select().where(criterion)
+
+        paramaterized_criterion, query_args = paramaterize(criterion)
+
+        query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(2)
-        results = await Porm.fetch_many(cls, query.get_sql())
+
+        results = await Porm.fetch_many(cls, query.get_sql(), query_args)
 
         if len(results) > 1:
             raise MultipleResultsReturned(f"Multiple {cls.__name__} were returned when only one was expected")
@@ -310,10 +323,12 @@ class Table:
 
         query: QueryBuilder = cls.select()
 
+        query_args = None
         if criterion:
-            query = query.where(criterion)
+            parameterized_criterion, query_args = paramaterize(criterion)
+            query = query.where(parameterized_criterion)
 
-        results = await Porm.fetch_many(cls, query.get_sql())
+        results = await Porm.fetch_many(cls, query.get_sql(), query_args)
 
         if prefetch:
             results = await cls.fetch_related(results, prefetch)
@@ -331,14 +346,16 @@ class Table:
 
         query: QueryBuilder = QueryBuilder().update(cls.__tablename__)
 
-        for field in cls._fields():
-            query = query.set(field.name, getattr(item, field.name))
-
         pk = cls._primary_key()
+        parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.name))
 
-        query = query.where(pk == getattr(item, pk.name))
+        for i, field in enumerate(cls._fields()):
+            query = query.set(field.name, Parameter(f"${i + 2}"))
+            query_args.append(getattr(item, field.name))
 
-        updated = await Porm.fetch_one(cls, with_returning(query))
+        query = query.where(parameterized_criterion)
+
+        updated = await Porm.fetch_one(cls, with_returning(query), query_args)
 
         if prefetch and updated:
             [updated] = await cls.fetch_related([updated], prefetch)
@@ -350,8 +367,11 @@ class Table:
 
         query: QueryBuilder = QueryBuilder().delete()
         query = query.from_(cls.__tablename__)
-        query = query.where(criterion)
-        return await Porm.fetch_many(cls, with_returning(query))
+
+        parameterized_criterion, query_args = paramaterize(criterion)
+
+        query = query.where(parameterized_criterion)
+        return await Porm.fetch_many(cls, with_returning(query), query_args)
 
     @classmethod
     async def _load_relationships_for_items(
@@ -391,11 +411,12 @@ class Table:
                 else [getattr(item, relationship.self_field) for item in items]
             )
 
-            sub_items_query: QueryBuilder = relationship_table.select().where(
+            paramaterized_criterion, query_args = paramaterize(
                 relationship_table._field(relationship.other_field).isin(keys)
             )
+            sub_items_query: QueryBuilder = relationship_table.select().where(paramaterized_criterion)
 
-            sub_items = await Porm.fetch_many(relationship_table, sub_items_query.get_sql())
+            sub_items = await Porm.fetch_many(relationship_table, sub_items_query.get_sql(), query_args)
 
             if isinstance(relationship, ForeignKeyRelationship):
                 sub_items_map = {getattr(i, relationship.other_field): i for i in sub_items}

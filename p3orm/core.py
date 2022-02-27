@@ -101,16 +101,16 @@ class _Porm:
         self,
         cls: Type[Model],
         query: Union[str, QueryBuilder],
-        query_params: Sequence[Any] = None,
+        query_args: Sequence[Any] = None,
     ) -> Optional[Model]:
-        results = await self.fetch_many(cls, query, query_params=query_params)
+        results = await self.fetch_many(cls, query, query_args=query_args)
         return None if len(results) == 0 else results[0]
 
     async def fetch_many(
         self,
         cls: Type[Model],
         query: Union[str, QueryBuilder],
-        query_params: Sequence[Any] = None,
+        query_args: Sequence[Any] = None,
     ) -> List[Model]:
 
         if isinstance(query, QueryBuilder):
@@ -121,8 +121,8 @@ class _Porm:
 
         fetch_arguments = [query]
 
-        if query_params:
-            fetch_arguments += query_params
+        if query_args:
+            fetch_arguments += query_args
 
         results: List[Record] = []
 
@@ -147,7 +147,6 @@ class _Porm:
             return True
 
         if self.pool and not self.pool._closed:
-            print(self.pool, self.pool._closed)
             return True
 
         return False
