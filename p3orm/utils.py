@@ -34,7 +34,7 @@ def paramaterize(criterion: Criterion, query_args: List[Any] = None) -> Tuple[Cr
         start_param = Parameter(f"${param_start_index}")
         end_param = Parameter(f"${param_start_index + 1}")
 
-        query_args += [start_param, end_param]
+        query_args += [criterion.start.value, criterion.end.value]
         # There are several RangeCriterion, create a new one with the same subclass
         return criterion.__class__(criterion.term, start_param, end_param, criterion.alias), query_args
 
