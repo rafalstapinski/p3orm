@@ -12,6 +12,14 @@
   </strong>
 </p>
 
+---
+
+**Documentation**: <a href="https://rafalstapinski.github.io/p3orm">https://rafalstapinski.github.io/p3orm</a>
+
+**Source Code**: <a href="https://github.com/rafalstapinski/p3orm">https://github.com/rafalstapinski/p3orm</a>
+
+---
+
 <p align="center">
   <a href="https://github.com/rafalstapinski/porm/actions/workflows/test.yml" target="_blank">
     <img src="https://github.com/rafalstapinski/porm/actions/workflows/test.yml/badge.svg" alt="Test Status" />
@@ -84,7 +92,3 @@ updated = await Thing.update_one(fetched)
 
 deleted = await Thing.delete_where(Thing.id == updated.id)
 ```
-
-<h2>Usage</h2>
-
-See <a href="https://rafalstapinski.github.io/p3orm">docs</a>
