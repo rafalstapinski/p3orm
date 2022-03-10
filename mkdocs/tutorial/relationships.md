@@ -40,7 +40,7 @@ child = await Child.fetch_one(Child.id == 1)
 
 child.parent # <p3orm.table.UNLOADED>
 
-[child] = await Child.fetch_related([child], ((Child.parent,),))
+[child] = await Child.fetch_related([child], [[Child.parent]])
 
 child.parent # <Parent>
 ```
@@ -64,7 +64,7 @@ parent.children # <list[Child]>
 
 thing = await Thing.fetch_one(Thing.id == 1)
 
-[thing] = await Thing.fetch_related([thing], ([thing.f1], [thing.f2], [thing.rr1))
+[thing] = await Thing.fetch_related([thing], [[thing.f1], [thing.f2], [thing.rr1]])
 
 thing.f1 # <Model>
 thing.f2 # <Model2>
