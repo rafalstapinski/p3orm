@@ -71,12 +71,12 @@ pip install p3orm
 from datetime import datetime
 
 from p3orm.core import Porm
-from p3orm.table import Table, PormField
+from p3orm.table import Table, Column
 
 class Thing(Table):
-    id = PormField(int, "id", pk=True, autogen=True)
-    name = PormField(str, "name")
-    created_at = PormField(datetime, "created_at", autogen=True)
+    id = Column(int, "id", pk=True, autogen=True)
+    name = Column(str, "name")
+    created_at = Column(datetime, "created_at", autogen=True)
 
 await Porm.connect(user=..., password=..., database=..., host=..., port=...)
 

@@ -28,14 +28,14 @@ Porm maintains a singleton to be loaded from `p3orm.core`.
 from datetime import datetime
 from typing import Optional
 
-from p3orm.table import Table, PormField
+from p3orm.table import Table, Column
 
 class Thing(Table):
   __tablename__ = "thing"
 
-  id = PormField(int, "id", autogen=True)
-  name = PormField(Optional[str], "name")
-  created_at = PormField(datetime, "created_at", autogen=True)
+  id = Column(int, "id", autogen=True)
+  name = Column(Optional[str], "name")
+  created_at = Column(datetime, "created_at", autogen=True)
 ```
 
 ### PormField parameters

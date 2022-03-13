@@ -16,17 +16,17 @@ If a relationship is fetched but there are no values to be fetched (because the 
 ```python
 from __future__ import annotations
 
-from p3orm.table import Table, ForeignKeyRelationship, ReverseRelationship, PormField
+from p3orm.table import Table, ForeignKeyRelationship, ReverseRelationship, Column
 
 class Parent(Table):
-  id = PormField(int, "id", pk=True, autogen=True)
+  id = Column(int, "id", pk=True, autogen=True)
 
   children: list[Child] = ReverseRelationship(self_field="id", other_field="parent_id")
 
 class Child(Table):
-  id = PormField(int, "id", pk=True, autogen=True)
-  name = PormField(str, "name")
-  parent_id = PormField(int, "parent_id")
+  id = Column(int, "id", pk=True, autogen=True)
+  name = Column(str, "name")
+  parent_id = Column(int, "parent_id")
 
   parent: Parent = ForeignKeyRelationship(self_field="parent_id", other_field="id")
 ```
