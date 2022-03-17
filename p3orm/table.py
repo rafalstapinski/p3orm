@@ -22,11 +22,6 @@ from p3orm.fields import UNLOADED, RelationshipType, _PormField, _Relationship
 from p3orm.types import Model
 from p3orm.utils import paramaterize, with_returning
 
-
-class _TableModelConfig(BaseConfig):
-    arbitrary_types_allowed = True
-
-
 FetchType = Sequence[Sequence[_Relationship]]
 
 
@@ -48,13 +43,20 @@ class Table:
 
     @classmethod
     def _create_model_factory(cls: Table) -> Type[Model]:
+        class _TableModelConfig(BaseConfig):
+            arbitrary_types_allowed = True
+            allow_population_by_field_name = True
+            fields = dict()
 
         factory_model_kwargs = {}
         for field_name, field in cls._field_map().items():
             factory_model_kwargs[field_name] = (field._type, None)
+            _TableModelConfig.fields[field_name] = field.column_name
 
         for relationship_name in cls._relationship_map():
             factory_model_kwargs[relationship_name] = (UNLOADED, None)
+
+        print(_TableModelConfig.fields)
 
         return create_model(cls.__name__, __config__=_TableModelConfig, **factory_model_kwargs)
 
@@ -92,6 +94,7 @@ class Table:
                 if field.column_name is None:
                     field.column_name = field_name
                     field.name = field_name
+                field.field_name = field_name
                 fields.append(field)
 
         if exclude_autogen:
@@ -102,11 +105,11 @@ class Table:
     @classmethod
     def _field_map(cls, exclude_autogen: Optional[bool] = False) -> Dict[str, _PormField]:
         fields = cls._fields(exclude_autogen)
-        return {f.column_name: f for f in fields}
+        return {f.field_name: f for f in fields}
 
     @classmethod
     def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> List[Any]:
-        return [getattr(item, field.column_name) for field in cls._fields(exclude_autogen=exclude_autogen)]
+        return [getattr(item, field.field_name) for field in cls._fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
     def _primary_key(cls) -> Optional[_PormField]:
@@ -283,12 +286,12 @@ class Table:
         query: QueryBuilder = QueryBuilder().update(cls.__tablename__)
 
         pk = cls._primary_key()
-        parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.column_name))
+        parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.field_name))
 
         for i, field in enumerate(cls._fields()):
             field: _PormField
             query = query.set(field.column_name, Parameter(f"${i + 2}"))
-            query_args.append(getattr(item, field.column_name))
+            query_args.append(getattr(item, field.field_name))
 
         query = query.where(parameterized_criterion)
 

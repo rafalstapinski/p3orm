@@ -74,9 +74,9 @@ from p3orm.core import Porm
 from p3orm.table import Table, Column
 
 class Thing(Table):
-    id = Column(int, "id", pk=True, autogen=True)
-    name = Column(str, "name")
-    created_at = Column(datetime, "created_at", autogen=True)
+    id = Column(int, pk=True, autogen=True)
+    name = Column(str)
+    created_at = Column(datetime, autogen=True)
 
 await Porm.connect(user=..., password=..., database=..., host=..., port=...)
 
