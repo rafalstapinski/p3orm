@@ -2,10 +2,12 @@
 
 __version__ = "0.4.0"
 
+# Provided for convenience
 from pypika import Order
 
 from .core import *
 from .exceptions import *
+from .fields import *
 from .table import *
 from .types import *
 from .utils import *

@@ -3,30 +3,30 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
-from p3orm.table import Column, ForeignKeyRelationship, ReverseRelationship, Table
+from p3orm import Column, ForeignKeyRelationship, ReverseRelationship, Table
 
 
 class Company(Table):
 
     __tablename__ = "company"
 
-    id = Column(int, "id", pk=True, autogen=True)
-    name = Column(str, "name")
-    created_at = Column(datetime, "created_at", autogen=True)
+    id = Column(int, pk=True, autogen=True)
+    name = Column(str)
+    time_created = Column(datetime, "created_at", autogen=True)
 
-    employees: List[Employee] = ReverseRelationship(self_field="id", other_field="company_id")
+    employees: List[Employee] = ReverseRelationship(self_column="id", foreign_column="company_id")
 
 
 class Employee(Table):
 
     __tablename__ = "employee"
 
-    id = Column(int, "id", pk=True, autogen=True)
-    name = Column(str, "name")
+    id = Column(int, pk=True, autogen=True)
+    name = Column(str)
     company_id = Column(int, "company_id")
     created_at = Column(datetime, "created_at", autogen=True)
 
-    company: Company = ForeignKeyRelationship(self_field="company_id", other_field="id")
+    company: Company = ForeignKeyRelationship(self_column="company_id", foreign_column="id")
 
 
 class OrgChart(Table):
@@ -37,5 +37,5 @@ class OrgChart(Table):
     manager_id = Column(int, "manager_id")
     report_id = Column(int, "report_id")
 
-    manager: Employee = ForeignKeyRelationship(self_field="manager_id", other_field="id")
-    report: Employee = ForeignKeyRelationship(self_field="report_id", other_field="id")
+    manager: Employee = ForeignKeyRelationship(self_column="manager_id", foreign_column="id")
+    report: Employee = ForeignKeyRelationship(self_column="report_id", foreign_column="id")

@@ -3,7 +3,7 @@
 p3orm has full support for executing <a href="https://github.com/kayak/pypika">PyPika</a> queries. PyPika queries are constructed by building blocks that are analogous to the underlying SQL, the learning curve is minimal if you already know SQL.
 
 ### Available PyPika shortcuts
-- `select` - Equivalent to PyPika's `QueryBuilder().from_(tablename).select(field)`. This defaults field to return everything `*` but you can pass in a specific `PormField` for executing subqueries.
+- `select` - Equivalent to PyPika's `QueryBuilder().from_(tablename).select(field)`. This defaults field to return everything `*` but you can pass in a specific `_PormField` for executing subqueries.
 - `update` - Equivalent to PyPika's `QueryBuilder().update(tablename)`. You can then chain this with your own `.where()` and `.set()` statements.
 - `delete` - Equivalent to PyPika's `QueryBuilder().delete().from(tablename)`. You can then chain this with your own `.where()` statement. 
 - `from_` -> Calls underlying` QueryBuilder().from_(tablename)`, useful if you need to execute broader queries.

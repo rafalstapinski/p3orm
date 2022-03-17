@@ -38,7 +38,7 @@ class Thing(Table):
   created_at = Column(datetime, "created_at", autogen=True)
 ```
 
-### PormField parameters
+### _PormField parameters
 - `_type`: Specifies the type of the column, will be used to convert between Python and Postgres. This also generates the type annotation for an instance of your model. For a list of supported types, see the [asyncpg docs](https://magicstack.github.io/asyncpg/current/usage.html#type-conversion).
 - `name`: Specifies the name of the column. This (currently) has to match the name of the field on the class as well.
 - `pk`: Specifies whether this is the primary key. This is used for the `update_one` convenience function.

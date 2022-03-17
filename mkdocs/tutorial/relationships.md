@@ -21,14 +21,14 @@ from p3orm.table import Table, ForeignKeyRelationship, ReverseRelationship, Colu
 class Parent(Table):
   id = Column(int, "id", pk=True, autogen=True)
 
-  children: list[Child] = ReverseRelationship(self_field="id", other_field="parent_id")
+  children: list[Child] = ReverseRelationship(self_column="id", foreign_column="parent_id")
 
 class Child(Table):
   id = Column(int, "id", pk=True, autogen=True)
   name = Column(str, "name")
   parent_id = Column(int, "parent_id")
 
-  parent: Parent = ForeignKeyRelationship(self_field="parent_id", other_field="id")
+  parent: Parent = ForeignKeyRelationship(self_column="parent_id", foreign_column="id")
 ```
 
 It's not necessary to import `from future import __annotations__`. If you don't import, just know you will have to mark your anotations as strings, e.g. `children: list["Child"]` or `parent: "Parent"`
@@ -45,7 +45,7 @@ child.parent # <p3orm.table.UNLOADED>
 child.parent # <Parent>
 ```
 
-`fetch_related` accepts a `Sequence[Sequence[Relationship]]` to allow for fetching multiple relationships and deeply nested relationships.
+`fetch_related` accepts a `Sequence[Sequence[_Relationship]]` to allow for fetching multiple relationships and deeply nested relationships.
 
 ### Fetching reverse foreign key relationships
 ```python

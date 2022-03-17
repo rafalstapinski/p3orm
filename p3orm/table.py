@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict, List, NoReturn, Optional, Sequence, Type, Union, get_type_hints
+from typing import Any, Dict, List, Optional, Sequence, Type, Union, get_type_hints
 
 from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model
 from pypika import Order, Query
 from pypika.queries import QueryBuilder
-from pypika.terms import Criterion, Field, Parameter
+from pypika.terms import Criterion, Parameter
 
 from p3orm.core import Porm
 from p3orm.exceptions import (
@@ -17,90 +17,10 @@ from p3orm.exceptions import (
     MissingTablename,
     MultipleResultsReturned,
     NoResultsReturned,
-    UnloadedRelationship,
 )
-from p3orm.types import Model, T
+from p3orm.fields import UNLOADED, RelationshipType, _PormField, _Relationship
+from p3orm.types import Model
 from p3orm.utils import paramaterize, with_returning
-
-
-class UNLOADED:
-    def __getattribute__(self, name) -> NoReturn:
-        if name == "__class__":
-            return UNLOADED
-
-        raise UnloadedRelationship("Relationship has not yet been loaded from the database")
-
-    def __getitem__(*args) -> NoReturn:
-        raise UnloadedRelationship("Relationship has not yet been loaded from the database")
-
-    def __eq__(self, other):
-        return isinstance(other, UNLOADED)
-
-    def __repr__(self) -> str:
-        return f"<UNLOADED RELATIONSHIP>"
-
-
-class PormField(Field):
-    pk: bool
-    autogen: bool
-    _type: Type
-
-    def __init__(
-        self,
-        _type: Type,
-        name: str,
-        pk: Optional[bool] = False,
-        autogen: Optional[bool] = False,
-    ):
-        self._type = _type
-        self.name = name  # column name - must match field name as well
-        self.pk = pk
-        self.autogen = autogen
-
-
-def Column(
-    _type: Type[T],
-    name: str,
-    *,
-    pk: Optional[bool] = False,
-    autogen: Optional[bool] = False,
-) -> Union[T, PormField]:
-    return PormField(
-        _type=_type,
-        name=name,
-        pk=pk,
-        autogen=autogen,
-    )
-
-
-class _Relationship:
-
-    self_field: str
-    other_field: str
-
-    def __init__(
-        self,
-        self_field: str,
-        other_field: str,
-    ):
-        self.self_field = self_field
-        self.other_field = other_field
-
-    def __new__(cls, *args, **kwargs) -> _Relationship:
-        if cls is _Relationship:
-            raise InvalidRelationship(
-                "Can not use Relationship directly. Must use ForeignKeyRelationship or ReverseRelationship"
-            )
-
-        return super().__new__(cls)
-
-
-class ForeignKeyRelationship(_Relationship):
-    ...
-
-
-class ReverseRelationship(_Relationship):
-    ...
 
 
 class _TableModelConfig(BaseConfig):
@@ -145,7 +65,7 @@ class Table:
         fields = cls._fields()
 
         if len([f for f in fields if f.pk]) != 1:
-            raise MissingPrimaryKey(f"{cls.__name__} is missing a primary key")
+            raise MissingPrimaryKey(f"{cls.__name__} must have 1 primary key field")
 
     #
     # Introspective methods
@@ -162,35 +82,41 @@ class Table:
             if relationship == _relationship:
                 return field_name
 
-        raise MissingRelationship(f"Relationship {relationship} does not exist on {cls.__name__}")
+        raise MissingRelationship(f"_Relationship {relationship} does not exist on {cls.__name__}")
 
     @classmethod
-    def _fields(cls, exclude_autogen: Optional[bool] = False) -> List[PormField]:
-        fields = [field for field_name in cls.__dict__ if isinstance(field := getattr(cls, field_name), PormField)]
+    def _fields(cls, exclude_autogen: Optional[bool] = False) -> List[_PormField]:
+        fields: List[_PormField] = []
+        for field_name in cls.__dict__:
+            if isinstance(field := getattr(cls, field_name), _PormField):
+                if field.column_name is None:
+                    field.column_name = field_name
+                    field.name = field_name
+                fields.append(field)
+
         if exclude_autogen:
             fields = [f for f in fields if not f.autogen]
+
         return fields
 
     @classmethod
-    def _field_map(cls, exclude_autogen: Optional[bool] = False) -> Dict[str, PormField]:
-        fields = {
-            field_name: field for field_name in cls.__dict__ if isinstance(field := getattr(cls, field_name), PormField)
-        }
-        return fields
+    def _field_map(cls, exclude_autogen: Optional[bool] = False) -> Dict[str, _PormField]:
+        fields = cls._fields(exclude_autogen)
+        return {f.column_name: f for f in fields}
 
     @classmethod
     def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> List[Any]:
-        return [getattr(item, field.name) for field in cls._fields(exclude_autogen=exclude_autogen)]
+        return [getattr(item, field.column_name) for field in cls._fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
-    def _primary_key(cls) -> Optional[PormField]:
+    def _primary_key(cls) -> Optional[_PormField]:
         for field in cls._fields():
             if field.pk:
                 return field
         return None
 
     @classmethod
-    def _field(cls, field_name: str) -> PormField:
+    def _field(cls, field_name: str) -> _PormField:
         return cls._field_map()[field_name]
 
     #
@@ -318,7 +244,7 @@ class Table:
         /,
         criterion: Criterion = None,
         *,
-        order: Union[PormField, List[PormField]] = None,
+        order: Union[_PormField, List[_PormField]] = None,
         by: Order = Order.asc,
         limit: int = None,
         prefetch: FetchType = None,
@@ -333,7 +259,7 @@ class Table:
 
         if order:
             order_fields = order if isinstance(order, list) else [order]
-            query = query.orderby(*[o.name for o in order_fields], order=by)
+            query = query.orderby(*[o.column_name for o in order_fields], order=by)
 
         if limit:
             query = query.limit(limit)
@@ -357,11 +283,12 @@ class Table:
         query: QueryBuilder = QueryBuilder().update(cls.__tablename__)
 
         pk = cls._primary_key()
-        parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.name))
+        parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.column_name))
 
         for i, field in enumerate(cls._fields()):
-            query = query.set(field.name, Parameter(f"${i + 2}"))
-            query_args.append(getattr(item, field.name))
+            field: _PormField
+            query = query.set(field.column_name, Parameter(f"${i + 2}"))
+            query_args.append(getattr(item, field.column_name))
 
         query = query.where(parameterized_criterion)
 
@@ -406,7 +333,7 @@ class Table:
                 if r == relationship:
                     relationship_table = (
                         type_hints.get(n)
-                        if isinstance(relationship, ForeignKeyRelationship)
+                        if relationship.relationship_type == RelationshipType.foreign_key
                         else type_hints.get(n).__args__[0]
                     )
 
@@ -416,23 +343,23 @@ class Table:
                 raise InvalidRelationship(f"Relationship {relationship} doesn't exist on {cls}")
 
             keys = (
-                [getattr(item, relationship.self_field) for item in items]
-                if isinstance(relationship, ForeignKeyRelationship)
-                else [getattr(item, relationship.self_field) for item in items]
+                [getattr(item, relationship.self_column) for item in items]
+                if relationship.relationship_type == RelationshipType.foreign_key
+                else [getattr(item, relationship.self_column) for item in items]
             )
 
             paramaterized_criterion, query_args = paramaterize(
-                relationship_table._field(relationship.other_field).isin(keys)
+                relationship_table._field(relationship.foreign_column).isin(keys)
             )
             sub_items_query: QueryBuilder = relationship_table.select().where(paramaterized_criterion)
 
             sub_items = await Porm.fetch_many(relationship_table, sub_items_query.get_sql(), query_args)
 
-            if isinstance(relationship, ForeignKeyRelationship):
-                sub_items_map = {getattr(i, relationship.other_field): i for i in sub_items}
+            if relationship.relationship_type == RelationshipType.foreign_key:
+                sub_items_map = {getattr(i, relationship.foreign_column): i for i in sub_items}
 
                 for item in items:
-                    foreign_key = getattr(item, relationship.self_field)
+                    foreign_key = getattr(item, relationship.self_column)
 
                     # Remove unloaded relationship as it has been fetched
                     if foreign_key is None:
@@ -442,11 +369,11 @@ class Table:
                     setattr(item, relationship_field_name, sub_items_map[foreign_key])
 
             else:
-                items_map = {getattr(i, relationship.self_field): i for i in items}
+                items_map = {getattr(i, relationship.self_column): i for i in items}
 
                 # Attach all loaded sub_items to appropriate item
                 for sub_item in sub_items:
-                    foreign_key = getattr(sub_item, relationship.other_field)
+                    foreign_key = getattr(sub_item, relationship.foreign_column)
                     item = items_map[foreign_key]
 
                     if isinstance(getattr(item, relationship_field_name), UNLOADED):
