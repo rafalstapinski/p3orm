@@ -277,7 +277,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/defining_models.md" class="md-nav__link">
+      <a href="../defining_models/" class="md-nav__link">
         Defining Models
       </a>
     </li>
@@ -486,23 +486,25 @@
 <p>p3orm has full support for executing <a href="https://github.com/kayak/pypika">PyPika</a> queries. PyPika queries are constructed by building blocks that are analogous to the underlying SQL, the learning curve is minimal if you already know SQL.</p>
 <h3 id="available-pypika-shortcuts">Available PyPika shortcuts</h3>
 <ul>
-<li><code>select</code> - Equivalent to PyPika's <code>QueryBuilder().from_(tablename).select(field)</code>. This defaults field to return everything <code>*</code> but you can pass in a specific <code>_PormField</code> for executing subqueries.</li>
+<li><code>select</code> - Equivalent to PyPika's <code>QueryBuilder().from_(tablename).select(field)</code>. This defaults to return everything (<code>*</code>) but you can pass in a specific model field for executing subqueries.</li>
 <li><code>update</code> - Equivalent to PyPika's <code>QueryBuilder().update(tablename)</code>. You can then chain this with your own <code>.where()</code> and <code>.set()</code> statements.</li>
 <li><code>delete</code> - Equivalent to PyPika's <code>QueryBuilder().delete().from(tablename)</code>. You can then chain this with your own <code>.where()</code> statement. </li>
 <li><code>from_</code> -&gt; Calls underlying<code>QueryBuilder().from_(tablename)</code>, useful if you need to execute broader queries.</li>
 </ul>
+<p>These shortcuts only build queries. To run the query against a database you must use the <code>_Porm.fetch_many</code> or <code>_Porm.fetch_many</code> methods.</p>
 <h3 id="selecting-with-pypika-queries">Selecting with PyPika queries</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">subquery</span> <span class="o">=</span> <span class="n">OtherThing</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;thing_id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">OtherThing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">subquery</span> <span class="o">=</span> <span class="n">OtherThing</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">OtherThing</span><span class="o">.</span><span class="n">thing_id</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">OtherThing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Thing</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">subquery</span><span class="p">))</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">things</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">execute_many</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">things</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Porm</span><span class="o">.</span><span class="n">fetch_many</span><span class="p">(</span><span class="n">Thing</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="updating-with-pypika-queries">Updating with PyPika queries</h3>
+<p>p3orm provides the <code>with_returning</code> function to wrap PyPika insert/udpate/delete queries so that they return results.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">p3orm</span> <span class="kn">import</span> <span class="n">with_returning</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Thing</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;another name&quot;</span><span class="p">)</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">updated_things</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">execute_many</span><span class="p">(</span><span class="n">with_returning</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">updated_things</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Porm</span><span class="o">.</span><span class="n">fetch_many</span><span class="p">(</span><span class="n">with_returning</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
 </code></pre></div>
 <h3 id="deleting-with-pypika-queries">Deleting with PyPika queries</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">p3orm.utils</span> <span class="kn">import</span> <span class="n">with_returning</span>
@@ -510,7 +512,7 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">subquery</span> <span class="o">=</span> <span class="n">OtherThing</span><span class="o">.</span><span class="n">from_</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;thing_id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">OtherThing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Thing</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">subquery</span><span class="p">))</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">deleted_things</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">execute_many</span><span class="p">(</span><span class="n">with_returning</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">deleted_things</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Porm</span><span class="o">.</span><span class="n">fetch_many</span><span class="p">(</span><span class="n">with_returning</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
 </code></pre></div>
 
               

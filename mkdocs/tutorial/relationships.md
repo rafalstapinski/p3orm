@@ -19,14 +19,14 @@ from __future__ import annotations
 from p3orm import Table, ForeignKeyRelationship, ReverseRelationship, Column
 
 class Parent(Table):
-  id = Column(int, "id", pk=True, autogen=True)
+  id = Column(int, pk=True, autogen=True)
 
   children: list[Child] = ReverseRelationship(self_column="id", foreign_column="parent_id")
 
 class Child(Table):
-  id = Column(int, "id", pk=True, autogen=True)
-  name = Column(str, "name")
-  parent_id = Column(int, "parent_id")
+  id = Column(int, pk=True, autogen=True)
+  name = Column(str)
+  parent_id = Column(int)
 
   parent: Parent = ForeignKeyRelationship(self_column="parent_id", foreign_column="id")
 ```

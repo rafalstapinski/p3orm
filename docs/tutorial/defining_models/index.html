@@ -13,7 +13,7 @@
     
     
       
-        <title>Defining models - p3orm</title>
+        <title>Defining Models - p3orm</title>
       
     
     
@@ -61,6 +61,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#defining-models" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -90,7 +95,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Defining models
+              Defining Models
             
           </span>
         </div>
@@ -228,12 +233,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
       
       
       
@@ -268,11 +275,86 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../tutorials/defining_models.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Defining Models
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Defining Models
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#defining-a-table" class="md-nav__link">
+    Defining a table
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-columns" class="md-nav__link">
+    Defining columns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#column-types" class="md-nav__link">
+    Column types
+  </a>
+  
+    <nav class="md-nav" aria-label="Column types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional-types-and-nullable-columns" class="md-nav__link">
+    Optional types and nullable columns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-columns" class="md-nav__link">
+    Default columns
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -348,6 +430,73 @@
               </div>
             
             
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#defining-a-table" class="md-nav__link">
+    Defining a table
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-columns" class="md-nav__link">
+    Defining columns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#column-types" class="md-nav__link">
+    Column types
+  </a>
+  
+    <nav class="md-nav" aria-label="Column types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional-types-and-nullable-columns" class="md-nav__link">
+    Optional types and nullable columns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-columns" class="md-nav__link">
+    Default columns
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content" data-md-component="content">
             <article class="md-content__inner md-typeset">
@@ -359,9 +508,50 @@
 
 
 
-  <h1>Defining models</h1>
-
-
+<h1 id="defining-models">Defining models</h1>
+<h2 id="defining-a-table">Defining a table</h2>
+<p>Models are used in p3orm to reflect the tables in your database. They can be created by defining a class the inherits from <code>p3orm.table.Table</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">p3orm</span> <span class="kn">import</span> <span class="n">Table</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">class</span> <span class="nc">MyTable</span><span class="p">(</span><span class="n">Table</span><span class="p">):</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;my_table&quot;</span>
+</code></pre></div>
+<p>All p3orm models require a <code>__tablename__</code> property which must match name of the table in your database.</p>
+<h2 id="defining-columns">Defining columns</h2>
+<p>Your models define tables using the <code>Column</code> function.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">p3orm</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">class</span> <span class="nc">MyTable</span><span class="p">(</span><span class="n">Column</span><span class="p">):</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;my_table&quot;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">autogen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  <span class="n">property_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;column_name&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  <span class="n">created_at</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="n">autogen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Each column has can be defined with the following parameters</p>
+<ul>
+<li><code>_type</code> - This is a positional argument. It is the first and only required argument you must pass to define your column. It is what p3orm will use to serialize and deserialize the value between Python and the database. </li>
+<li><code>column_name</code> - This is the name of the column in the database. If not specified, p3orm will use the name of the field as the column name.</li>
+<li><code>pk</code>- This is a boolean flag which tells p3orm that this column is the primary key of your table.</li>
+<li><code>autogen</code> - This is a boolean flag which tells p3orm that this column has a <code>DEFAULT</code> constant or expression value in the database.</li>
+</ul>
+<h2 id="column-types">Column types</h2>
+<p>p3orm uses <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> under the hood to map query results into Python objects.  All standard data types are supported out of the box, including numbers, text, arrays, composite types, range types, enumerations and any combination of them.</p>
+<p>p3orm also uses these types for intellisense within your IDE, so your models' field types will be automatically inferred by your editor!</p>
+<p>For a list of supported types, see the <a href="https://magicstack.github.io/asyncpg/current/usage.html#type-conversion" >asyncpg docs</a>.</p>
+<h3 id="optional-types-and-nullable-columns">Optional types and nullable columns</h3>
+<p>If a column is nullable/optional in the database, its type should be <code>Optional[ ]</code> (or <code>| None</code>).</p>
+<p>When a field is required/not-nullable:</p>
+<ul>
+<li>p3orm will raise a <code>pydantic.error_wrappers.ValidationError</code> if you try to create an instance of the object locally without providing a non-null value.</li>
+<li>p3orm will raise an <code>asyncpg.exceptions.NotNullViolationError</code> if you fetch an object from the database which has a null value.</li>
+</ul>
+<p>A model's fields' optionality should match the nullability of the column in the database.</p>
+<h2 id="default-columns">Default columns</h2>
+<p>Column marked with <code>autogen=True</code> are columns whose values are generated at the database layer. Marking a field with <code>autogen=True</code> tells p3orm to ignore user-defined values in the <code>Table</code>'s insert and update statements. Locally changing the value of one of these fields on a model will not raise an error, but persisting that change to the database will have no effect. This feature is used for columns like <code>created_at</code>, <code>updated_at</code>, or auto incrementing IDs.</p>
 
               
             </article>
@@ -371,6 +561,41 @@
       </main>
       
         <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../connecting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Connecting to the Database" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Connecting to the Database
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../relationships/" class="md-footer__link md-footer__link--next" aria-label="Next: Relationships" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Relationships
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
