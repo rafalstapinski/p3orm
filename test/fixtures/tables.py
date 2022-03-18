@@ -13,7 +13,7 @@ class Company(Table):
     id = Column(int, pk=True, autogen=True)
     name = Column(str)
     created_at = Column(datetime, autogen=True)
-    some_property = Column(Optional[str], "different_column_name")
+    some_property = Column(Optional[str], "column_name")
 
     employees: List[Employee] = ReverseRelationship(self_column="id", foreign_column="company_id")
 
@@ -24,7 +24,7 @@ class Employee(Table):
 
     id = Column(int, pk=True, autogen=True)
     name = Column(str)
-    company_id = Column(int)
+    company_id = Column(Optional[int])
     created_at = Column(datetime, autogen=True)
 
     company: Company = ForeignKeyRelationship(self_column="company_id", foreign_column="id")

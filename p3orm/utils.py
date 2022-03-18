@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
 
 import asyncpg
 from pypika.queries import QueryBuilder
@@ -39,3 +39,7 @@ def paramaterize(criterion: Criterion, query_args: List[Any] = None) -> Tuple[Cr
         return criterion.__class__(criterion.term, start_param, end_param, criterion.alias), query_args
 
     return criterion, query_args
+
+
+def is_optional(_type: Type):
+    return get_origin(_type) is Union and type(None) in get_args(_type)

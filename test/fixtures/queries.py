@@ -3,7 +3,7 @@ CREATE TABLE company (
     id SERIAL PRIMARY KEY,
     name text NOT NULL,
     created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    different_column_name text
+    column_name text
 );
 
 
@@ -23,7 +23,7 @@ CREATE TABLE org_chart (
 """
 
 BASE_DATA = """
-INSERT INTO company (name, different_column_name) VALUES ('Company 1', 'yeet');
+INSERT INTO company (name, column_name) VALUES ('Company 1', 'yeet');
 INSERT INTO company (name) VALUES ('Company 2');
 INSERT INTO company (name) VALUES ('Company 3');
 INSERT INTO company (name) VALUES ('Company 4');

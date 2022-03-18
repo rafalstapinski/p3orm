@@ -4,6 +4,7 @@ from datetime import datetime
 
 import asyncpg
 import pytest
+from pydantic import ValidationError
 
 from test.fixtures.helpers import create_base_and_connect
 from test.fixtures.tables import Company, Employee
@@ -23,9 +24,12 @@ async def test_insert_one(create_base_and_connect):
 @pytest.mark.asyncio
 async def test_insert_one_fails_null(create_base_and_connect):
 
-    to_insert = Company()
+    with pytest.raises(ValidationError):
+        to_insert = Company()
 
     with pytest.raises(asyncpg.exceptions.NotNullViolationError):
+        to_insert = Company(name="ok")
+        to_insert.name = None
         await Company.insert_one(to_insert)
 
 
@@ -56,9 +60,9 @@ async def test_insert_many(create_base_and_connect):
 @pytest.mark.asyncio
 async def test_insert_many_fails_null(create_base_and_connect):
 
-    to_insert = [Company(), Company()]
-
     with pytest.raises(asyncpg.exceptions.NotNullViolationError):
+        to_insert = [Company(name="ok"), Company(name="ok2")]
+        to_insert[0].name = None
         await Company.insert_many(to_insert)
 
 

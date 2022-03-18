@@ -20,7 +20,7 @@ from p3orm.exceptions import (
 )
 from p3orm.fields import UNLOADED, RelationshipType, _PormField, _Relationship
 from p3orm.types import Model
-from p3orm.utils import paramaterize, with_returning
+from p3orm.utils import is_optional, paramaterize, with_returning
 
 FetchType = Sequence[Sequence[_Relationship]]
 
@@ -50,13 +50,17 @@ class Table:
 
         factory_model_kwargs = {}
         for field_name, field in cls._field_map().items():
-            factory_model_kwargs[field_name] = (field._type, None)
+            field: _PormField
+
+            default = ...
+            if field.autogen or is_optional(field._type):
+                default = None
+
+            factory_model_kwargs[field_name] = (field._type, default)
             _TableModelConfig.fields[field_name] = field.column_name
 
         for relationship_name in cls._relationship_map():
             factory_model_kwargs[relationship_name] = (UNLOADED, None)
-
-        print(_TableModelConfig.fields)
 
         return create_model(cls.__name__, __config__=_TableModelConfig, **factory_model_kwargs)
 
