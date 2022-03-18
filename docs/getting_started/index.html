@@ -558,12 +558,12 @@
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">await</span> <span class="n">Porm</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">user</span><span class="o">=...</span><span class="p">,</span> <span class="n">password</span><span class="o">=...</span><span class="p">,</span> <span class="n">database</span><span class="o">=...</span><span class="p">,</span> <span class="n">host</span><span class="o">=...</span><span class="p">,</span> <span class="n">port</span><span class="o">=...</span><span class="p">)</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">Porm</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">is_closed</span><span class="p">()</span> <span class="c1"># False</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">Porm</span><span class="o">.</span><span class="n">is_connected</span><span class="p">()</span> <span class="c1"># False</span>
 </code></pre></div>
 <h2 id="disconnecting">Disconnecting</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">Porm</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">Porm</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">is_closed</span><span class="p">()</span> <span class="c1"># True</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">Porm</span><span class="o">.</span><span class="n">is_connected</span><span class="p">()</span> <span class="c1"># False</span>
 </code></pre></div>
 <p>Porm maintains the singleton <code>Porm</code> that can be used to access a database.</p>
 <h2 id="defining-models">Defining models</h2>

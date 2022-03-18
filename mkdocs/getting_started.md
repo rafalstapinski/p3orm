@@ -11,14 +11,14 @@ await Porm.connect("postgresql://user:pass@host:port")
 
 await Porm.connect(user=..., password=..., database=..., host=..., port=...)
 
-Porm.connection.is_closed() # False
+Porm.is_connected() # False
 ```
 
 ## Disconnecting
 ```python
 await Porm.disconnect()
 
-Porm.connection.is_closed() # True
+Porm.is_connected() # False
 ```
 
 Porm maintains the singleton `Porm` that can be used to access a database.
