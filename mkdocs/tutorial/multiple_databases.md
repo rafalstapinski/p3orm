@@ -5,7 +5,7 @@ By default, p3orm provides a singleton to connect to an available database as `p
 You can create your own instance of a `_Porm` and connect to a second database, though.
 
 ```python
-from p3orm.core import _Porm
+from p3orm import _Porm
 
 first_database = _Porm()
 await first_database.connect(dsn=...)

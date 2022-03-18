@@ -3,7 +3,7 @@
 ## Connecting to the database
 
 ```python
-from p3orm.core import Porm
+from p3orm import Porm
 
 await Porm.connect("postgresql://user:pass@host:port")
 
@@ -21,14 +21,14 @@ await Porm.disconnect()
 Porm.connection.is_closed() # True
 ```
 
-Porm maintains a singleton to be loaded from `p3orm.core`.
+Porm maintains the singleton `Porm` that can be used to access a database.
 
 ## Defining models
 ```python
 from datetime import datetime
 from typing import Optional
 
-from p3orm.table import Table, Column
+from p3orm import Table, Column
 
 class Thing(Table):
   __tablename__ = "thing"

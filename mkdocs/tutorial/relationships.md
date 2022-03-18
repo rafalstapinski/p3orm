@@ -16,7 +16,7 @@ If a relationship is fetched but there are no values to be fetched (because the 
 ```python
 from __future__ import annotations
 
-from p3orm.table import Table, ForeignKeyRelationship, ReverseRelationship, Column
+from p3orm import Table, ForeignKeyRelationship, ReverseRelationship, Column
 
 class Parent(Table):
   id = Column(int, "id", pk=True, autogen=True)

@@ -261,6 +261,34 @@
               
   
   
+  
+    <li class="md-nav__item">
+      <a href="../connecting/" class="md-nav__link">
+        Connecting to the Database
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/defining_models.md" class="md-nav__link">
+        Defining Models
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
     
   
   
@@ -388,20 +416,6 @@
     <li class="md-nav__item">
       <a href="../complex_queries/" class="md-nav__link">
         Complex Queries
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../connecting/" class="md-nav__link">
-        Connecting to the Database
       </a>
     </li>
   
@@ -574,7 +588,7 @@
 <h2 id="defining-relationships">Defining relationships</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">p3orm.table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">ForeignKeyRelationship</span><span class="p">,</span> <span class="n">ReverseRelationship</span><span class="p">,</span> <span class="n">Column</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">p3orm</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">ForeignKeyRelationship</span><span class="p">,</span> <span class="n">ReverseRelationship</span><span class="p">,</span> <span class="n">Column</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">class</span> <span class="nc">Parent</span><span class="p">(</span><span class="n">Table</span><span class="p">):</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">autogen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -654,7 +668,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../../getting_started/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Getting Started" rel="prev">
+        <a href="../connecting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Connecting to the Database" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -663,7 +677,7 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Getting Started
+              Connecting to the Database
             </div>
           </div>
         </a>

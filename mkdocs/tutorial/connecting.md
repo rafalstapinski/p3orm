@@ -7,7 +7,7 @@ p3orm allows you to connect either with a direct connection or with a connection
 With p3orm you can open a single connection to the database. This is useful for simpler short lived applications like a script. You can open a connection by using the `_Porm.connect` method.
 
 ```python
-from p3orm.core import Porm
+from p3orm import Porm
 
 await Porm.connect(dsn=...)
 
@@ -23,7 +23,7 @@ This will create an underlying `asyncpg.Connection` which is available for inspe
 For many applications like web servers, it's advisable to use a <a href="https://stackoverflow.blog/2020/10/14/improve-database-performance-with-connection-pooling/" >connection pool</a>.
 
 ```python
-from p3orm.core import Porm
+from p3orm import Porm
 
 await Porm.connect_pool(dsn=...)
 

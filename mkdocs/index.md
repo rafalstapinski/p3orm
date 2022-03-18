@@ -70,8 +70,7 @@ pip install p3orm
 
 from datetime import datetime
 
-from p3orm.core import Porm
-from p3orm.table import Table, Column
+from p3orm import Table, Column, Porm
 
 class Thing(Table):
     id = Column(int, "id", pk=True, autogen=True)

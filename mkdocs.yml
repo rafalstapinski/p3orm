@@ -8,9 +8,10 @@ nav:
   - About: index.md
   - Getting Started: getting_started.md
   - Tutorial:
+    - Connecting to the Database: tutorial/connecting.md
+    - Defining Models: tutorials/defining_models.md
     - Relationships: tutorial/relationships.md
     - Complex Queries: tutorial/complex_queries.md
-    - Connecting to the Database: tutorial/connecting.md
     - Multiple Databases: tutorial/multiple_databases.md
   - Contributing: contributing.md
 

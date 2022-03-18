@@ -20,7 +20,7 @@ things = await Thing.execute_many(query)
 ### Updating with PyPika queries
 
 ```python
-from p3orm.utils import with_returning
+from p3orm import with_returning
 
 query = Thing.update().where(Thing.name == "name").set(Thing.name, "another name")
 
