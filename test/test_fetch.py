@@ -34,7 +34,7 @@ async def test_fetch_all_filtering(create_base_and_connect):
 
 
 @pytest.mark.asyncio
-async def test_fetch_first(create_base_and_connect):
+async def test_fetch_first_of_many(create_base_and_connect):
 
     company = await Company.fetch_first(Company.id < 3)
 
@@ -44,7 +44,7 @@ async def test_fetch_first(create_base_and_connect):
 
 
 @pytest.mark.asyncio
-async def test_fetch_first(create_base_and_connect):
+async def test_fetch_first_of_one(create_base_and_connect):
 
     company = await Company.fetch_first(Company.id == 1)
 
