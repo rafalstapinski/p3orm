@@ -5,3 +5,4 @@ __pycache__
 .pytest_cache
 dist
 .mypy_cache
+.DS_Store
