@@ -1,7 +1,7 @@
 # p3orm
 
 <a href="https://rafalstapinski.github.io/p3orm">
-  <img src="https://rafalstapinski.github.io/p3orm/img/logo.png" alt="p3orm logo" />
+  <img src="https://rafalstapinski.github.io/p3orm/img/logo.png" alt="p3orm logo" style="width: 600px; margin-left: calc(50% - 300px)" />
 </a>
 
 <p align="center">

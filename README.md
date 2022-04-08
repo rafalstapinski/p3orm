@@ -1,7 +1,7 @@
 # p3orm
 
 <a href="https://rafalstapinski.github.io/p3orm">
-  <img src="https://rafalstapinski.github.io/p3orm/img/logo.png" alt="p3orm logo" />
+  <img src="https://rafalstapinski.github.io/p3orm/img/logo.png" alt="p3orm logo" style="width: 600px; margin-left: calc(50% - 300px)" />
 </a>
 
 <p align="center">
@@ -70,12 +70,12 @@ pip install p3orm
 
 from datetime import datetime
 
-from p3orm import Porm, Table, Column
+from p3orm import Table, Column, Porm
 
 class Thing(Table):
-    id = Column(int, pk=True, autogen=True)
-    name = Column(str)
-    created_at = Column(datetime, autogen=True)
+    id = Column(int, "id", pk=True, autogen=True)
+    name = Column(str, "name")
+    created_at = Column(datetime, "created_at", autogen=True)
 
 await Porm.connect(user=..., password=..., database=..., host=..., port=...)
 
