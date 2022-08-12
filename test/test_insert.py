@@ -107,3 +107,11 @@ async def test_insert_many_prefetch(create_base_and_connect):
 
     for employee in created:
         assert employee.company == company
+
+
+@pytest.mark.asyncio
+async def test_insert_many_empty_list(create_base_and_connect):
+
+    created = await Employee.insert_many([])
+
+    assert created == []

@@ -189,6 +189,9 @@ class Table:
         prefetch: FetchType = None,
     ) -> List[Model]:
 
+        if not items:
+            return []
+
         columns = cls._fields(exclude_autogen=True)
         columns_count = len(columns)
         query: QueryBuilder = Query.into(cls.__tablename__).columns(*columns)
