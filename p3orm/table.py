@@ -15,6 +15,7 @@ from p3orm.exceptions import (
     MissingPrimaryKey,
     MissingRelationship,
     MissingTablename,
+    MultiplePrimaryKeys,
     MultipleResultsReturned,
     NoResultsReturned,
 )
@@ -28,6 +29,9 @@ FetchType = Sequence[Sequence[_Relationship]]
 class Table:
 
     __tablename__: str
+
+    class Meta:
+        meta_table: bool = False
 
     #
     # Magic
@@ -65,13 +69,17 @@ class Table:
         return create_model(cls.__name__, __config__=_TableModelConfig, **factory_model_kwargs)
 
     def __init_subclass__(cls) -> None:
-        if not hasattr(cls, "__tablename__") or cls.__tablename__ is None:
+        if (not hasattr(cls, "__tablename__") or cls.__tablename__ is None) and cls.Meta.meta_table == False:
             raise MissingTablename(f"{cls.__name__} must define a __tablename__ property")
 
         fields = cls._fields()
 
-        if len([f for f in fields if f.pk]) != 1:
+        num_pkeys = len([f for f in fields if f.pk])
+        if num_pkeys == 0:
             raise MissingPrimaryKey(f"{cls.__name__} must have 1 primary key field")
+
+        elif num_pkeys > 1:
+            raise MultiplePrimaryKeys(f"{cls.__name__} has more than 1 primary key field (check parent classes)")
 
     #
     # Introspective methods
@@ -93,13 +101,14 @@ class Table:
     @classmethod
     def _fields(cls, exclude_autogen: Optional[bool] = False) -> List[_PormField]:
         fields: List[_PormField] = []
-        for field_name in cls.__dict__:
-            if isinstance(field := getattr(cls, field_name), _PormField):
-                if field.column_name is None:
-                    field.column_name = field_name
-                    field.name = field_name
-                field.field_name = field_name
-                fields.append(field)
+        for table in cls.__mro__:
+            for field_name in table.__dict__:
+                if isinstance(field := getattr(table, field_name), _PormField):
+                    if field.column_name is None:
+                        field.column_name = field_name
+                        field.name = field_name
+                    field.field_name = field_name
+                    fields.append(field)
 
         if exclude_autogen:
             fields = [f for f in fields if not f.autogen]

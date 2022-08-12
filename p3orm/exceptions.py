@@ -14,6 +14,10 @@ class MissingPrimaryKey(PormException):
     ...
 
 
+class MultiplePrimaryKeys(PormException):
+    ...
+
+
 class MissingTablename(PormException):
     ...
 
