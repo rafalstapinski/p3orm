@@ -42,3 +42,22 @@ async def test_table_fails_on_required_property(create_base_and_connect):
 
     with pytest.raises(ValidationError):
         _Company(id=1)
+
+
+def test_meta_table_no_tablename():
+    class MyMetaTable(Table):
+        class Meta:
+            meta_table = True
+
+        id = Column(int, "id", pk=True, autogen=True)
+
+
+def test_table_can_have_pk_on_parent():
+    class Entity(Table):
+        class Meta:
+            meta_table = True
+
+        id = Column(int, "id", pk=True, autogen=True)
+
+    class MyTable(Entity):
+        __tablename__ = "my_table"
