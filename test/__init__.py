@@ -1,6 +1,6 @@
 import pytest
 
-from p3orm.core import Porm
+from p3orm.core import driver
 
 
 @pytest.fixture(autouse=True, scope="function")
@@ -8,4 +8,4 @@ async def disconnect_after_test():
 
     yield
 
-    await Porm.disconnect()
+    await driver().disconnect()

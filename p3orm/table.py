@@ -9,7 +9,7 @@ from pypika import Order, Query
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Parameter
 
-from p3orm.core import Porm
+from p3orm.core import driver, querybuilder
 from p3orm.exceptions import (
     InvalidRelationship,
     MissingPrimaryKey,
@@ -140,7 +140,7 @@ class Table:
     #
     @classmethod
     def from_(cls) -> QueryBuilder:
-        return QueryBuilder().from_(cls.__tablename__)
+        return querybuilder().from_(cls.__tablename__)
 
     @classmethod
     def select(cls, to_select: str = "*") -> QueryBuilder:
@@ -148,11 +148,11 @@ class Table:
 
     @classmethod
     def delete(cls) -> QueryBuilder:
-        return QueryBuilder().delete().from_(cls.__tablename__)
+        return querybuilder().delete().from_(cls.__tablename__)
 
     @classmethod
     def update(cls) -> QueryBuilder:
-        return QueryBuilder().update(cls.__tablename__)
+        return querybuilder().update(cls.__tablename__)
 
     #
     # Queries
@@ -173,7 +173,7 @@ class Table:
 
         query = query.insert(query_params)
 
-        inserted: Optional[Model] = await Porm.fetch_one(cls, with_returning(query), query_args)
+        inserted: Optional[Model] = await driver().fetch_one(cls, with_returning(query), query_args)
 
         if prefetch and inserted:
             [inserted] = await cls.fetch_related([inserted], prefetch)
@@ -202,7 +202,7 @@ class Table:
             query_params = [Parameter(f"${page * columns_count + offset + 1}") for offset in range(columns_count)]
             query = query.insert(query_params)
 
-        inserted = await Porm.fetch_many(cls, with_returning(query), query_args)
+        inserted = await driver().fetch_many(cls, with_returning(query), query_args)
 
         if prefetch and inserted:
             inserted = await cls.fetch_related(inserted, prefetch)
@@ -222,7 +222,7 @@ class Table:
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(1)
 
-        result = await Porm.fetch_one(cls, query.get_sql(), query_args=query_args)
+        result = await driver().fetch_one(cls, query.get_sql(), query_args=query_args)
 
         if result and prefetch:
             [result] = await cls.fetch_related([result], prefetch)
@@ -243,7 +243,7 @@ class Table:
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(2)
 
-        results = await Porm.fetch_many(cls, query.get_sql(), query_args)
+        results = await driver().fetch_many(cls, query.get_sql(), query_args)
 
         if len(results) > 1:
             raise MultipleResultsReturned(f"Multiple {cls.__name__} were returned when only one was expected")
@@ -283,7 +283,7 @@ class Table:
         if limit:
             query = query.limit(limit)
 
-        results = await Porm.fetch_many(cls, query.get_sql(), query_args)
+        results = await driver().fetch_many(cls, query.get_sql(), query_args)
 
         if prefetch:
             results = await cls.fetch_related(results, prefetch)
@@ -299,7 +299,7 @@ class Table:
         prefetch: FetchType = None,
     ) -> Model:
 
-        query: QueryBuilder = QueryBuilder().update(cls.__tablename__)
+        query: QueryBuilder = querybuilder().update(cls.__tablename__)
 
         pk = cls._primary_key()
         parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.field_name))
@@ -311,7 +311,7 @@ class Table:
 
         query = query.where(parameterized_criterion)
 
-        updated = await Porm.fetch_one(cls, with_returning(query), query_args)
+        updated = await driver().fetch_one(cls, with_returning(query), query_args)
 
         if prefetch and updated:
             [updated] = await cls.fetch_related([updated], prefetch)
@@ -321,13 +321,13 @@ class Table:
     @classmethod
     async def delete_where(cls: Union[Type[Model], Table], /, criterion: Criterion) -> List[Model]:
 
-        query: QueryBuilder = QueryBuilder().delete()
+        query: QueryBuilder = querybuilder().delete()
         query = query.from_(cls.__tablename__)
 
         parameterized_criterion, query_args = paramaterize(criterion)
 
         query = query.where(parameterized_criterion)
-        return await Porm.fetch_many(cls, with_returning(query), query_args)
+        return await driver().fetch_many(cls, with_returning(query), query_args)
 
     @classmethod
     async def _load_relationships_for_items(
@@ -372,7 +372,7 @@ class Table:
             )
             sub_items_query: QueryBuilder = relationship_table.select().where(paramaterized_criterion)
 
-            sub_items = await Porm.fetch_many(relationship_table, sub_items_query.get_sql(), query_args)
+            sub_items = await driver().fetch_many(relationship_table, sub_items_query.get_sql(), query_args)
 
             if relationship.relationship_type == RelationshipType.foreign_key:
                 sub_items_map = {getattr(i, relationship.foreign_column): i for i in sub_items}

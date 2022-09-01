@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 from asyncpg import Connection, Pool
 
-from p3orm.core import Porm
+from p3orm.core import postgres
 from p3orm.exceptions import AlreadyConnected, NotConnected
 
 from test.fixtures.helpers import _get_connection_kwargs, create_base
@@ -18,53 +18,55 @@ if TYPE_CHECKING:
 @pytest.mark.asyncio
 async def test_connection(postgresql: connection):
 
-    await Porm.connect(**_get_connection_kwargs(postgresql))
+    db = postgres()
+    await db.connect(**_get_connection_kwargs(postgresql))
 
-    assert Porm.is_connected() == True
-    assert isinstance(Porm.connection, Connection)
-    assert Porm.connection.is_closed() == False
-    assert Porm.pool == None
+    assert db.is_connected() == True
+    assert isinstance(db.connection, Connection)
+    assert db.connection.is_closed() == False
+    assert db.pool == None
 
-    await Porm.disconnect()
+    await db.disconnect()
 
-    assert Porm.is_connected() == False
-    assert Porm.connection == None
-    assert Porm.pool == None
+    assert db.is_connected() == False
+    assert db.connection == None
+    assert db.pool == None
 
 
 @pytest.mark.asyncio
 async def test_pool(postgresql: connection):
 
-    await Porm.connect_pool(**_get_connection_kwargs(postgresql))
+    db = postgres()
+    await db.connect_pool(**_get_connection_kwargs(postgresql))
 
-    assert Porm.is_connected() == True
-    assert isinstance(Porm.pool, Pool)
-    assert Porm.pool._closed == False
-    assert Porm.connection == None
+    assert db.is_connected() == True
+    assert isinstance(db.pool, Pool)
+    assert db.pool._closed == False
+    assert db.connection == None
 
-    await Porm.disconnect()
-
-    assert Porm.is_connected() == False
-    assert Porm.connection == None
-    assert Porm.pool == None
+    await db.disconnect()
+    assert db.is_connected() == False
+    assert db.connection == None
+    assert db.pool == None
 
 
 @pytest.mark.asyncio
 async def test_cant_connect_with_both(postgresql: connection):
 
-    await Porm.connect(**_get_connection_kwargs(postgresql))
+    db = postgres()
+    await db.connect(**_get_connection_kwargs(postgresql))
 
     with pytest.raises(AlreadyConnected):
-        await Porm.connect_pool(**_get_connection_kwargs(postgresql))
+        await db.connect_pool(**_get_connection_kwargs(postgresql))
 
-    await Porm.disconnect()
+    await db.disconnect()
 
-    await Porm.connect_pool(**_get_connection_kwargs(postgresql))
+    await db.connect_pool(**_get_connection_kwargs(postgresql))
 
     with pytest.raises(AlreadyConnected):
-        await Porm.connect(**_get_connection_kwargs(postgresql))
+        await db.connect(**_get_connection_kwargs(postgresql))
 
-    await Porm.disconnect()
+    await db.disconnect()
 
 
 @pytest.mark.asyncio
