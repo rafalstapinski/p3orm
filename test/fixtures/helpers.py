@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from p3orm.core import Porm
+from p3orm.core import postgres
 
 if TYPE_CHECKING:
     from psycopg2 import connection
@@ -38,7 +38,8 @@ async def create_base_and_connect(postgresql: connection):
     create_base(postgresql)
     dsn_params = postgresql.get_dsn_parameters()
 
-    await Porm.connect(
+    db = postgres()
+    await db.connect(
         user=dsn_params.get("user"),
         password=dsn_params.get("password"),
         database=dsn_params.get("dbname"),
@@ -48,7 +49,7 @@ async def create_base_and_connect(postgresql: connection):
 
     yield
 
-    await Porm.disconnect()
+    await db.disconnect()
 
 
 def _get_connection_kwargs(postgresql: connection):

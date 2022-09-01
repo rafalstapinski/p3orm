@@ -5,7 +5,7 @@ __version__ = "0.5.0"
 # Provided for convenience
 from pypika import Order
 
-from .core import *
+from .core import postgres, querybuilder, sqlite
 from .exceptions import *
 from .fields import *
 from .table import *
