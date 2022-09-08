@@ -239,8 +239,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#objects-created-or-fetched-by-p3orm-are-dead-theyre-just-pydantic-models-if-you-want-to-interact-with-the-database-you-do-so-explicitly" class="md-nav__link">
-    Objects created or fetched by p3orm are dead, they're just Pydantic models. If you want to interact with the database, you do so explicitly.
+  <a href="#tldr-p3orm-makes-easy-things-easy-and-hard-things-possible" class="md-nav__link">
+    tl;dr - p3orm makes easy things easy, and hard things possible
   </a>
   
 </li>
@@ -303,7 +303,7 @@
   
     <li class="md-nav__item">
       <a href="tutorial/connecting/" class="md-nav__link">
-        Connecting to the Database
+        Connecting to a Postgres Database
       </a>
     </li>
   
@@ -346,20 +346,6 @@
     <li class="md-nav__item">
       <a href="tutorial/complex_queries/" class="md-nav__link">
         Complex Queries
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="tutorial/multiple_databases/" class="md-nav__link">
-        Multiple Databases
       </a>
     </li>
   
@@ -414,8 +400,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#objects-created-or-fetched-by-p3orm-are-dead-theyre-just-pydantic-models-if-you-want-to-interact-with-the-database-you-do-so-explicitly" class="md-nav__link">
-    Objects created or fetched by p3orm are dead, they're just Pydantic models. If you want to interact with the database, you do so explicitly.
+  <a href="#tldr-p3orm-makes-easy-things-easy-and-hard-things-possible" class="md-nav__link">
+    tl;dr - p3orm makes easy things easy, and hard things possible
   </a>
   
 </li>
@@ -445,7 +431,7 @@
 <p align="center">
   <strong>
     <em>
-      Utilitarian Python ORM for Postgres, backed by <a href="https://github.com/MagicStack/asyncpg">asyncpg</a>, <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a>, and <a href="https://github.com/kayak/pypika">PyPika</a>
+      Utilitarian Python ORM for Postgres/SQLite powered by <a href="https://github.com/MagicStack/asyncpg">asyncpg</a>/<a href="https://github.com/omnilib/aiosqlite">aiosqlite</a>, <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a>, and <a href="https://github.com/kayak/pypika">PyPika</a>
     </em>
   </strong>
 </p>
@@ -455,8 +441,8 @@
 <p><strong>Source Code</strong>: <a href="https://github.com/rafalstapinski/p3orm">https://github.com/rafalstapinski/p3orm</a></p>
 <hr />
 <p align="center">
-  <a href="https://github.com/rafalstapinski/porm/actions/workflows/test.yml" target="_blank">
-    <img src="https://github.com/rafalstapinski/porm/actions/workflows/test.yml/badge.svg" alt="Test Status" />
+  <a href="https://github.com/rafalstapinski/p3orm/actions/workflows/test.yml" target="_blank">
+    <img src="https://github.com/rafalstapinski/p3orm/actions/workflows/test.yml/badge.svg" alt="Test Status" />
   </a>
   <a href="https://pypi.org/project/p3orm" target="_blank">
     <img src="https://img.shields.io/pypi/v/p3orm?color=%2334D058" alt="pypi" />
@@ -469,51 +455,66 @@
   </a>
 </p>
 
+<hr />
 <h2>Philosophy</h2>
 
 <p>90% of the time we talk to a database is with a CRUD operation. p3orm provides convenience helpers for fetching (one, first, many), inserting (one, many), updating (one), and deleting (one, many).</p>
 <p>The remaining 10% is a bit more complicated. p3orm doesn't attempt to hide SQL queries or database interactions behind any magic. Instead, it empowers you to write direct and legible SQL queries with <a href="https://github.com/kayak/pypika">PyPika</a> and execute them explicitly against the database.</p>
-<h3 id="objects-created-or-fetched-by-p3orm-are-dead-theyre-just-pydantic-models-if-you-want-to-interact-with-the-database-you-do-so-explicitly">Objects created or fetched by p3orm are dead, they're just <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> models. If you want to interact with the database, you do so explicitly.</h3>
+<p>Notably, objects created or fetched by p3orm are dead, they're just <a href="https://github.com/samuelcolvin/pydantic">Pydantic</a> models. If you want to interact with the database, you do so explicitly.</p>
+<h3 id="tldr-p3orm-makes-easy-things-easy-and-hard-things-possible">tl;dr - p3orm makes easy things easy, and hard things possible</h3>
+<hr />
 <h2>Features</h2>
 
 <ul>
 <li>Comprehensive type annotations (full intellisense support)</li>
-<li>Type validation</li>
-<li>Full support for PyPika queries</li>
-<li>Support for all <code>asyncpg</code> <a href="https://magicstack.github.io/asyncpg/current/usage.html#type-conversion">types</a></li>
+<li>String type validation an parsing powered by <code>Pydantic</code></li>
+<li>Support for <code>PyPika</code> queries</li>
+<li>Support for all <code>postgres</code> <a href="https://magicstack.github.io/asyncpg/current/usage.html#type-conversion">datatypes</a></li>
+<li>Support for all <code>sqlite</code> <a href="https://www.sqlite.org/datatype3.html">datatypes</a></li>
 </ul>
+<hr />
 <h2>Installation</h2>
 
 <p>Install with <code>poetry</code>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>poetry add p3orm
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>poetry add p3orm<span class="o">[</span>sqlite<span class="o">]</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># or</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>poetry add p3orm<span class="o">[</span>postgres<span class="o">]</span>
 </code></pre></div></p>
 <p>or with <code>pip</code></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip install p3orm
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip install p3orm<span class="o">[</span>sqlite<span class="o">]</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># or</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>pip install p3orm<span class="o">[</span>postgres<span class="o">]</span>
 </code></pre></div>
+<p>The <code>[sqlite]</code> extra installs <code>aiosqlite</code> as p3orm's database driver, whereas <code>[postgres]</code> installs <code>asyncpg</code>.</p>
+<hr />
 <h2>Basic Usage</h2>
 
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span> <span class="nn">p3orm</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Porm</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">class</span> <span class="nc">Thing</span><span class="p">(</span><span class="n">Table</span><span class="p">):</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">autogen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">created_at</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="s2">&quot;created_at&quot;</span><span class="p">,</span> <span class="n">autogen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="k">await</span> <span class="n">Porm</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">user</span><span class="o">=...</span><span class="p">,</span> <span class="n">password</span><span class="o">=...</span><span class="p">,</span> <span class="n">database</span><span class="o">=...</span><span class="p">,</span> <span class="n">host</span><span class="o">=...</span><span class="p">,</span> <span class="n">port</span><span class="o">=...</span><span class="p">)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span> <span class="nn">p3orm</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Table</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kn">from</span> <span class="nn">p3orm</span> <span class="kn">import</span> <span class="n">sqlite</span> <span class="k">as</span> <span class="n">db</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># or: from p3orm import postgres as db</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">class</span> <span class="nc">Thing</span><span class="p">(</span><span class="n">Table</span><span class="p">):</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">autogen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">created_at</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="n">autogen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">thing</span> <span class="o">=</span> <span class="n">Thing</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Name&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="k">await</span> <span class="n">db</span><span class="p">()</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;:memory:&quot;</span><span class="p">)</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">inserted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">thing</span><span class="p">)</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">thing</span> <span class="o">=</span> <span class="n">Thing</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Name&quot;</span><span class="p">)</span>
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">fetched</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">fetch_first</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">inserted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">thing</span><span class="p">)</span>
 <a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="n">fetched</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Changed&quot;</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="n">fetched</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">fetch_first</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="n">updated</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span><span class="n">fetched</span><span class="p">)</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="n">fetched</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Changed&quot;</span>
 <a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="n">deleted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">delete_where</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">updated</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="n">updated</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span><span class="n">fetched</span><span class="p">)</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="n">deleted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Thing</span><span class="o">.</span><span class="n">delete_where</span><span class="p">(</span><span class="n">Thing</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">updated</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="k">await</span> <span class="n">db</span><span class="p">()</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
 </code></pre></div>
 
               

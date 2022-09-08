@@ -1,27 +1,45 @@
 # Getting started
 
-## Connecting to the database
+## Connecting to a database
 
+### Postgres 
 ```python
-from p3orm import Porm
+from p3orm import postgres
 
-await Porm.connect("postgresql://user:pass@host:port")
+db = postgres()
+
+await db.connect("postgresql://user:pass@host:port")
 
 # or
 
-await Porm.connect(user=..., password=..., database=..., host=..., port=...)
+await db.connect(user=..., password=..., database=..., host=..., port=...)
 
-Porm.is_connected() # False
+db.is_connected() # False
+```
+
+### SQLite
+```python
+from p3orm import sqlite
+
+db = sqlite()
+await db.connect(":memory:")
 ```
 
 ## Disconnecting
+### Postgres
 ```python
-await Porm.disconnect()
+await postgres().disconnect()
 
-Porm.is_connected() # False
+postgres().is_connected() # False
+```
+### SQLite
+```python
+await sqlite().disconnect()
 ```
 
-Porm maintains the singleton `Porm` that can be used to access a database.
+p3orm currently allows you to connect to a single database within a process. You can fetch the Postgres driver with `postgres()` from `p3orm.core` and the SQLite driver with `sqlite()` from `p3orm.core`.
+
+---
 
 ## Defining models
 ```python
