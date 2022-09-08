@@ -8,11 +8,10 @@ nav:
   - About: index.md
   - Getting Started: getting_started.md
   - Tutorial:
-    - Connecting to the Database: tutorial/connecting.md
+    - Connecting to a Postgres Database: tutorial/connecting.md
     - Defining Models: tutorial/defining_models.md
     - Relationships: tutorial/relationships.md
     - Complex Queries: tutorial/complex_queries.md
-    - Multiple Databases: tutorial/multiple_databases.md
   - Contributing: contributing.md
 
 theme:

@@ -6,16 +6,16 @@ p3orm has full support for executing <a href="https://github.com/kayak/pypika">P
 - `select` - Equivalent to PyPika's `QueryBuilder().from_(tablename).select(field)`. This defaults to return everything (`*`) but you can pass in a specific model field for executing subqueries.
 - `update` - Equivalent to PyPika's `QueryBuilder().update(tablename)`. You can then chain this with your own `.where()` and `.set()` statements.
 - `delete` - Equivalent to PyPika's `QueryBuilder().delete().from(tablename)`. You can then chain this with your own `.where()` statement. 
-- `from_` -> Calls underlying` QueryBuilder().from_(tablename)`, useful if you need to execute broader queries.
+- `from_` -> Calls underlying `QueryBuilder().from_(tablename)`, useful if you need to execute broader queries.
 
-These shortcuts only build queries. To run the query against a database you must use the `_Porm.fetch_many` or `_Porm.fetch_many` methods.
+These shortcuts only build queries. To run the query against a database you must use your driver's `.fetch_many` or `.fetch_many` methods.
 ### Selecting with PyPika queries
 
 ```python
 subquery = OtherThing.select(OtherThing.thing_id).where(OtherThing.id == 1)
 query = Thing.select().where(Thing.id.isin(subquery))
 
-things = await Porm.fetch_many(Thing, query)
+things = await postgres().fetch_many(Thing, query)
 ```
 
 ### Updating with PyPika queries
@@ -27,7 +27,7 @@ from p3orm import with_returning
 
 query = Thing.update().where(Thing.name == "name").set(Thing.name, "another name")
 
-updated_things = await Porm.fetch_many(with_returning(query))
+updated_things = await postgres().fetch_many(with_returning(query))
 ```
 
 ### Deleting with PyPika queries
@@ -38,5 +38,5 @@ from p3orm.utils import with_returning
 subquery = OtherThing.from_().select("thing_id").where(OtherThing.id == 1)
 query = Thing.delete().where(Thing.id.isin(subquery))
 
-deleted_things = await Porm.fetch_many(with_returning(query))
+deleted_things = await postgres().fetch_many(with_returning(query))
 ```
