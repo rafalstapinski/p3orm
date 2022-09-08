@@ -37,9 +37,6 @@ jobs:
       # Install deps
       - run: poetry install
 
-      # Check SQLite version used by Python
-      - run: poetry run python -c "import sqlite3; print(sqlite3.sqlite_version); print(sqlite3.__file__)"
-
       # Test SQLite
       - run: poetry run pytest test/sqlite
 
