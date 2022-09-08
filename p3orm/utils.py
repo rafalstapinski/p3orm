@@ -15,12 +15,11 @@ from pypika.terms import (
     RangeCriterion,
 )
 
+from p3orm.exceptions import InvalidSQLiteVersion
+
 
 class PormComparator(Comparator):
     empty = " "
-
-
-from p3orm.exceptions import InvalidSQLiteVersion
 
 
 def record_to_kwargs(record: asyncpg.Record) -> Dict[str, Any]:
