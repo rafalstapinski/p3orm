@@ -9,7 +9,7 @@ from pypika import Order, Query
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Parameter
 
-from p3orm.core import driver, querybuilder
+from p3orm.core import dialect, driver, querybuilder
 from p3orm.exceptions import (
     InvalidRelationship,
     MissingPrimaryKey,
@@ -218,7 +218,7 @@ class Table:
         prefetch: FetchType = None,
     ) -> Optional[Model]:
 
-        paramaterized_criterion, query_args = paramaterize(criterion)
+        paramaterized_criterion, query_args = paramaterize(criterion, dialect=dialect())
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(1)
 
@@ -238,7 +238,7 @@ class Table:
         prefetch: FetchType = None,
     ) -> Model:
 
-        paramaterized_criterion, query_args = paramaterize(criterion)
+        paramaterized_criterion, query_args = paramaterize(criterion, dialect=dialect())
 
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(2)
@@ -273,7 +273,7 @@ class Table:
 
         query_args = None
         if criterion:
-            parameterized_criterion, query_args = paramaterize(criterion)
+            parameterized_criterion, query_args = paramaterize(criterion, dialect=dialect())
             query = query.where(parameterized_criterion)
 
         if order:
@@ -302,7 +302,7 @@ class Table:
         query: QueryBuilder = querybuilder().update(cls.__tablename__)
 
         pk = cls._primary_key()
-        parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.field_name))
+        parameterized_criterion, query_args = paramaterize(pk == getattr(item, pk.field_name), dialect=dialect())
 
         for i, field in enumerate(cls._fields()):
             field: _PormField
@@ -324,7 +324,7 @@ class Table:
         query: QueryBuilder = querybuilder().delete()
         query = query.from_(cls.__tablename__)
 
-        parameterized_criterion, query_args = paramaterize(criterion)
+        parameterized_criterion, query_args = paramaterize(criterion, dialect=dialect())
 
         query = query.where(parameterized_criterion)
         return await driver().fetch_many(cls, with_returning(query), query_args)
@@ -368,7 +368,8 @@ class Table:
             )
 
             paramaterized_criterion, query_args = paramaterize(
-                relationship_table._field(relationship.foreign_column).isin(keys)
+                relationship_table._field(relationship.foreign_column).isin(keys),
+                dialect=dialect(),
             )
             sub_items_query: QueryBuilder = relationship_table.select().where(paramaterized_criterion)
 

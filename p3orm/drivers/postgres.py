@@ -47,7 +47,7 @@ class PostgresDriver(BaseDriver):
         database: str = None,
         host: str = None,
         port: int = None,
-        **asyncpg_kwargs: Dict[str, Any]
+        **asyncpg_kwargs: Dict[str, Any],
     ):
         if self.is_connected():
             raise AlreadyConnected("A connection or pool is already established")
@@ -72,7 +72,7 @@ class PostgresDriver(BaseDriver):
         database: str = None,
         host: str = None,
         port: int = None,
-        **asyncpg_kwargs: Dict[str, Any]
+        **asyncpg_kwargs: Dict[str, Any],
     ):
         if self.is_connected():
             raise AlreadyConnected("A databse connection or pool is already established")

@@ -4,8 +4,8 @@ from pydantic import ValidationError
 from p3orm import Column, Table
 from p3orm.exceptions import MissingTablename
 
-from test.fixtures.helpers import create_base_and_connect
 from test.fixtures.tables import Company
+from test.postgres.fixtures.helpers import create_base_and_connect
 
 
 def test_table_has_tablename():
