@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "p3orm"
-version = "0.5.0"
-description = "Utilitarian Python ORM for Postgres, backed by asyncpg, Pydantic, and PyPika"
+version = "0.6.0"
+description = "Utilitarian Python ORM for Postgres/SQLite, backed by asyncpg/aiosqlite, Pydantic, and PyPika"
 authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
-keywords = ["postgres", "async", "orm"]
+keywords = ["postgres", "sqlite", "async", "orm"]
 readme = "README.md"
 license = "MIT"
 homepage = "https://rafalstapinski.github.io/p3orm"
