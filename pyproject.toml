@@ -12,9 +12,7 @@ repository = "https://github.com/rafalstapinski/p3orm"
 [tool.poetry.dependencies]
 python = "^3.8"
 PyPika = "^0.48.8"
-asyncpg = "^0.24.0"
 pydantic = "^1.8.2"
-aiosqlite = "^0.17.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"
@@ -26,6 +24,14 @@ psycopg2-binary = "^2.9.3"
 pytest-asyncio = "^0.18.1"
 mkdocs = "^1.2.3"
 mkdocs-material = "^8.2.1"
+asyncpg = "^0.26.0"
+aiosqlite = "^0.17.0"
+elastic-apm = "^6.11.0"
+structlog = "^22.1.0"
+
+[tool.poetry.extras]
+sqlite = ["aiosqlite"]
+postgres = ["asyncpg"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
