@@ -71,8 +71,6 @@ class SqliteDriver(BaseDriver):
             for i in range(rotate_amount):
                 query_args.append(query_args.pop(0))
 
-        print(f"\n\n {query=} \n {query_args=} \n\n")
-
         async with self.connection.execute(query, query_args) as cursor:
             rows = await cursor.fetchall()
             column_names = [column[0] for column in cursor.description]

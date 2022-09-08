@@ -69,10 +69,10 @@ jobs:
       - run: poetry run python -c "import sqlite3; print(sqlite3.sqlite_version)"
 
       # Test SQLite
-      - run: poetry run pytest -s test/sqlite
+      - run: poetry run pytest test/sqlite
 
       # Test Postgres
-      - run: poetry run pytest -s test/postgres
+      - run: poetry run pytest test/postgres
 
       # isort
       - run: poetry run isort --sp pyproject.toml --check .
