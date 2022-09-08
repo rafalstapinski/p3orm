@@ -29,7 +29,9 @@ jobs:
       
       # Install postgresql
       - run: |
-          sudo apt-get remove sqlite3 -y
+          sudo apt purge sqlite3 -y
+          sudo apt clean
+          sqlite3 --version
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg ${{ matrix.postgres-version }}" > /etc/apt/sources.list.d/pgdg.list'
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
