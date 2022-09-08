@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from test.fixtures.helpers import create_base_and_connect
 from test.fixtures.tables import Company, Employee, OrgChart
+from test.postgres.fixtures.helpers import create_base_and_connect
 
 
 @pytest.mark.asyncio

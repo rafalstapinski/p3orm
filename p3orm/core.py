@@ -6,35 +6,43 @@ from p3orm.drivers.postgres import PostgresDriver
 from p3orm.drivers.sqlite import SqliteDriver
 from p3orm.exceptions import NotConnected
 
-_DRIVER: BaseDriver = None
-_DIALECT: Dialects = None
+DRIVER: BaseDriver = None
+DIALECT: Dialects = None
 
 
 def postgres() -> PostgresDriver:
-    global _DRIVER, _DIALECT
-    if _DRIVER:
-        return _DRIVER
-    _DRIVER = PostgresDriver()
-    _DIALECT = Dialects.POSTGRESQL
-    return _DRIVER
+    global DRIVER, DIALECT
+    if DRIVER:
+        return DRIVER
+    DRIVER = PostgresDriver()
+    DIALECT = Dialects.POSTGRESQL
+    return DRIVER
 
 
 def sqlite() -> SqliteDriver:
-    global _DRIVER, _DIALECT
-    if _DRIVER:
-        return _DRIVER
-    _DRIVER = SqliteDriver()
-    _DIALECT = Dialects.SQLLITE
-    return _DRIVER
+    global DRIVER, DIALECT
+    if DRIVER:
+        return DRIVER
+    DRIVER = SqliteDriver()
+    DIALECT = Dialects.SQLLITE
+    return DRIVER
 
 
 def querybuilder() -> QueryBuilder:
-    return QueryBuilder(dialect=_DIALECT)
+    return QueryBuilder(dialect=DIALECT)
 
 
 def driver() -> BaseDriver:
-    global _DRIVER
-    if _DRIVER:
-        return _DRIVER
+    global DRIVER
+    if DRIVER:
+        return DRIVER
     else:
-        raise NotConnected("No database connection exists")
+        raise NotConnected("No driver as not connected")
+
+
+def dialect() -> Dialects:
+    global DIALECT
+    if DIALECT:
+        return DIALECT
+    else:
+        raise NotConnected("No dialect as not connected")

@@ -7,8 +7,8 @@ import pytest
 from p3orm import Order
 from p3orm.exceptions import MultipleResultsReturned, NoResultsReturned
 
-from test.fixtures.helpers import create_base_and_connect
 from test.fixtures.tables import Company, Employee
+from test.postgres.fixtures.helpers import create_base_and_connect
 
 
 @pytest.mark.asyncio

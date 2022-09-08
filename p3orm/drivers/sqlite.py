@@ -1,3 +1,5 @@
+import re
+from datetime import datetime
 from pathlib import Path
 from sqlite3 import Row
 from typing import Any, Dict, List, Optional, Sequence, Type, Union
@@ -30,6 +32,7 @@ class SqliteDriver(BaseDriver):
 
     async def disconnect(self):
         await self.connection.close()
+        self.connection = None
 
     async def fetch_one(
         self,
@@ -57,6 +60,16 @@ class SqliteDriver(BaseDriver):
         rows: List[Row] = []
         column_names: List[str] = []
         fields_map = {f.column_name: f.field_name for f in cls._fields()}
+
+        # In a case such as an update, "where" arguments are placed toward the end
+        # SQLite doesn't deal well with out of order params that don't match their
+        # arguments, so here we shift the arguments a necessary amount so that they
+        # match positionally rather than numerically
+        params = re.findall(r"\$[0-9]+", query)
+        if len(params) > 1:
+            rotate_amount = len(params) - params.index("$1")
+            for i in range(rotate_amount):
+                query_args.append(query_args.pop(0))
 
         async with self.connection.execute(query, query_args) as cursor:
             rows = await cursor.fetchall()

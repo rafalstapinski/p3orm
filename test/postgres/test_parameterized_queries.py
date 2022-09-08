@@ -1,7 +1,7 @@
 import pytest
 
-from test.fixtures.helpers import create_base_and_connect
 from test.fixtures.tables import Company
+from test.postgres.fixtures.helpers import create_base_and_connect
 
 
 @pytest.mark.asyncio

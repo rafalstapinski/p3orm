@@ -46,8 +46,11 @@ jobs:
       # Install deps
       - run: poetry install
 
-      # Test
-      - run: poetry run pytest test
+      # Test Postgres
+      - run: poetry run pytest test/postgres
+
+      # Test SQLite
+      - run: poetry run pytest test/sqlite
 
       # isort
       - run: poetry run isort --sp pyproject.toml --check .
