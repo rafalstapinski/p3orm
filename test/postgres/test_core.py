@@ -8,8 +8,8 @@ from asyncpg import Connection, Pool
 from p3orm.core import postgres
 from p3orm.exceptions import AlreadyConnected, NotConnected
 
-from test.fixtures.helpers import _get_connection_kwargs, create_base
 from test.fixtures.tables import Company
+from test.postgres.fixtures.helpers import _get_connection_kwargs, create_base
 
 if TYPE_CHECKING:
     from psycopg2 import connection

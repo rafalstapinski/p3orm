@@ -3,7 +3,21 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_
 
 import asyncpg
 from pypika.queries import QueryBuilder
-from pypika.terms import BasicCriterion, ContainsCriterion, Criterion, Equality, NullValue, Parameter, RangeCriterion
+from pypika.terms import (
+    BasicCriterion,
+    Comparator,
+    ContainsCriterion,
+    Criterion,
+    Dialects,
+    Equality,
+    NullValue,
+    Parameter,
+    RangeCriterion,
+)
+
+
+class PormComparator(Comparator):
+    empty = " "
 
 from p3orm.exceptions import InvalidSQLiteVersion
 
@@ -16,7 +30,9 @@ def with_returning(query: QueryBuilder, returning: Optional[str] = "*") -> str:
     return f"{query.get_sql()} RETURNING {returning}"
 
 
-def paramaterize(criterion: Criterion, query_args: List[Any] = None) -> Tuple[Criterion, List[Any]]:
+def paramaterize(
+    criterion: Criterion, query_args: List[Any] = None, dialect: Dialects = None
+) -> Tuple[Criterion, List[Any]]:
 
     if query_args == None:
         query_args = []
@@ -29,9 +45,19 @@ def paramaterize(criterion: Criterion, query_args: List[Any] = None) -> Tuple[Cr
         return BasicCriterion(criterion.comparator, criterion.left, param, criterion.alias), query_args
 
     elif isinstance(criterion, ContainsCriterion):
-        param = Parameter(f"ANY (${param_start_index})")
-        query_args.append([i.value for i in criterion.container.values if not isinstance(i, NullValue)])
-        return BasicCriterion(Equality.eq, criterion.term, param, criterion.alias), query_args
+        if dialect == Dialects.POSTGRESQL:
+            param = Parameter(f"ANY (${param_start_index})")
+            query_args.append([i.value for i in criterion.container.values if not isinstance(i, NullValue)])
+            return BasicCriterion(Equality.eq, criterion.term, param, criterion.alias), query_args
+        else:
+            qs = ", ".join("?" for i in range(len(criterion.container.values)))
+            param = Parameter(f"IN ({qs})")
+            for i in criterion.container.values:
+                if not isinstance(i, NullValue):
+                    query_args.append(i.value)
+                else:
+                    query_args.append(None)
+            return BasicCriterion(PormComparator.empty, criterion.term, param, criterion.alias), query_args
 
     elif isinstance(criterion, RangeCriterion):
         start_param = Parameter(f"${param_start_index}")

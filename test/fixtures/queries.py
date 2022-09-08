@@ -1,11 +1,10 @@
-BASE_TABLES = """
+BASE_TABLES_POSTGRES = """
 CREATE TABLE company (
     id SERIAL PRIMARY KEY,
     name text NOT NULL,
     created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     column_name text
 );
-
 
 CREATE TABLE employee (
     id SERIAL PRIMARY KEY,
@@ -14,9 +13,30 @@ CREATE TABLE employee (
     company_id bigint REFERENCES company(id)
 );
 
-
 CREATE TABLE org_chart (
     id SERIAL PRIMARY KEY,
+    manager_id bigint NOT NULL REFERENCES employee(id),
+    report_id bigint NOT NULL REFERENCES employee(id)
+);
+"""
+
+BASE_TABLES_SQLITE = """
+CREATE TABLE company (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name text NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    column_name text
+);
+
+CREATE TABLE employee (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name text NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    company_id bigint REFERENCES company(id)
+);
+
+CREATE TABLE org_chart (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     manager_id bigint NOT NULL REFERENCES employee(id),
     report_id bigint NOT NULL REFERENCES employee(id)
 );

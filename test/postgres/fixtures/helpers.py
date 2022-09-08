@@ -9,13 +9,13 @@ from p3orm.core import postgres
 if TYPE_CHECKING:
     from psycopg2 import connection
 
-from test.fixtures.queries import BASE_DATA, BASE_TABLES
+from test.fixtures.queries import BASE_DATA, BASE_TABLES_POSTGRES
 
 
 def create_base_tables(postgresql: connection):
 
     cursor = postgresql.cursor()
-    cursor.execute(BASE_TABLES)
+    cursor.execute(BASE_TABLES_POSTGRES)
     postgresql.commit()
     cursor.close()
 
