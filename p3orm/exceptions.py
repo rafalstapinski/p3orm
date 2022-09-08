@@ -44,3 +44,7 @@ class AlreadyConnected(PormException):
 
 class NotConnected(PormException):
     ...
+
+
+class InvalidSQLiteVersion(PormException):
+    ...

@@ -1,3 +1,4 @@
+import sqlite3
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
 
 import asyncpg
@@ -13,6 +14,8 @@ from pypika.terms import (
     Parameter,
     RangeCriterion,
 )
+
+from p3orm.exceptions import InvalidSQLiteVersion
 
 
 class PormComparator(Comparator):
@@ -69,3 +72,8 @@ def paramaterize(
 
 def is_optional(_type: Type):
     return get_origin(_type) is Union and type(None) in get_args(_type)
+
+
+def validate_sqlite_version():
+    if sqlite3.sqlite_version_info < (3, 35, 0):
+        raise InvalidSQLiteVersion("p3orm requires SQLite engine version 3.35 or higher")
