@@ -19,6 +19,7 @@ from pypika.terms import (
 class PormComparator(Comparator):
     empty = " "
 
+
 from p3orm.exceptions import InvalidSQLiteVersion
 
 
