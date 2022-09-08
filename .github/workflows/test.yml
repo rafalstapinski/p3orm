@@ -29,9 +29,6 @@ jobs:
       
       # Install postgresql
       - run: |
-          sudo apt purge sqlite3 -y
-          sudo apt clean
-          sqlite3 --version
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg ${{ matrix.postgres-version }}" > /etc/apt/sources.list.d/pgdg.list'
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
@@ -40,9 +37,11 @@ jobs:
           sudo sh -c 'echo "Pin-Priority: 1000" >> /etc/apt/preferences.d/psql'
           sudo apt-get update -o Dir::Etc::sourcelist="/etc/apt/sources.list.d/pgdg.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
           sudo apt install -y postgresql-${{ matrix.postgres-version }} postgresql-client-${{ matrix.postgres-version }}
-  
+
       # Install SQLite 3.37
       - run: |
+          sudo apt purge sqlite3 -y
+          sudo apt clean
           sudo apt install build-essential -y
           wget https://www.sqlite.org/2022/sqlite-autoconf-3370200.tar.gz
           tar xvfz sqlite-autoconf-3370200.tar.gz
