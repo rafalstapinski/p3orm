@@ -46,6 +46,9 @@ jobs:
       # Install deps
       - run: poetry install
 
+      # Check sqlite version
+      - run: sqlite3 --version
+
       # Test SQLite
       - run: poetry run pytest -s test/sqlite
 
