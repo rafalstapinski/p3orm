@@ -1,8 +1,11 @@
+import sqlite3
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
 
 import asyncpg
 from pypika.queries import QueryBuilder
 from pypika.terms import BasicCriterion, ContainsCriterion, Criterion, Equality, NullValue, Parameter, RangeCriterion
+
+from p3orm.exceptions import InvalidSQLiteVersion
 
 
 def record_to_kwargs(record: asyncpg.Record) -> Dict[str, Any]:
@@ -43,3 +46,8 @@ def paramaterize(criterion: Criterion, query_args: List[Any] = None) -> Tuple[Cr
 
 def is_optional(_type: Type):
     return get_origin(_type) is Union and type(None) in get_args(_type)
+
+
+def validate_sqlite_version():
+    if sqlite3.sqlite_version_info < (3, 35, 0):
+        raise InvalidSQLiteVersion("p3orm requires SQLite engine version 3.35 or higher")

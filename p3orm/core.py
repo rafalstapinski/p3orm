@@ -5,6 +5,7 @@ from p3orm.drivers.base import BaseDriver
 from p3orm.drivers.postgres import PostgresDriver
 from p3orm.drivers.sqlite import SqliteDriver
 from p3orm.exceptions import NotConnected
+from p3orm.utils import validate_sqlite_version
 
 _DRIVER: BaseDriver = None
 _DIALECT: Dialects = None
@@ -23,6 +24,7 @@ def sqlite() -> SqliteDriver:
     global _DRIVER, _DIALECT
     if _DRIVER:
         return _DRIVER
+    validate_sqlite_version()
     _DRIVER = SqliteDriver()
     _DIALECT = Dialects.SQLLITE
     return _DRIVER
