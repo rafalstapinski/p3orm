@@ -13,6 +13,8 @@ repository = "https://github.com/rafalstapinski/p3orm"
 python = "^3.8"
 PyPika = "^0.48.8"
 pydantic = "^1.8.2"
+asyncpg = {version = "^0.26.0", optional = true}
+aiosqlite = {version = "^0.17.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"
