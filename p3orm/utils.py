@@ -1,7 +1,11 @@
-import sqlite3
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
+from __future__ import annotations
 
-import asyncpg
+import sqlite3
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
+
+if TYPE_CHECKING:
+    import asyncpg
+
 from pypika.queries import QueryBuilder
 from pypika.terms import (
     BasicCriterion,
