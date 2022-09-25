@@ -74,6 +74,8 @@ class SqliteDriver(BaseDriver):
             rows = await cursor.fetchall()
             column_names = [column[0] for column in cursor.description]
 
+            await self.connection.commit()
+
         return [
             cls(**{fields_map[column_name]: column_value for column_name, column_value in zip(column_names, row)})
             for row in rows
