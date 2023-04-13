@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Sequence, Type, Union, get_type_hints
+from typing import Any, Callable, Dict, Generator, List, Optional, Sequence, Type, Union, get_type_hints
 
 from pydantic import BaseConfig, BaseModel
 from pydantic.main import create_model
@@ -46,7 +46,7 @@ class Table:
         return cls._create_model_factory()(**create_fields)
 
     @classmethod
-    def _create_model_factory(cls: Table) -> Type[Model]:
+    def _create_model_factory(cls: Table) -> Type[BaseModel]:
         class _TableModelConfig(BaseConfig):
             arbitrary_types_allowed = True
             allow_population_by_field_name = True
@@ -80,6 +80,17 @@ class Table:
 
         elif num_pkeys > 1:
             raise MultiplePrimaryKeys(f"{cls.__name__} has more than 1 primary key field (check parent classes)")
+
+    @classmethod
+    def __get_validators__(cls) -> Generator[Callable, None, None]:
+        yield cls.__validate
+
+    @classmethod
+    def __validate(cls, v: Model | Any) -> Model:
+        assert (
+            hasattr(v.__class__, "schema") and v.__class__.schema() == cls._create_model_factory().schema()
+        ), f"must be a valid {cls.__name__}"
+        return v
 
     #
     # Introspective methods
