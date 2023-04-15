@@ -8,6 +8,10 @@ readme = "README.md"
 license = "MIT"
 homepage = "https://rafalstapinski.github.io/p3orm"
 repository = "https://github.com/rafalstapinski/p3orm"
+packages = [
+  {include = "p3orm"},
+  {include = "p3orm/py.typed"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
