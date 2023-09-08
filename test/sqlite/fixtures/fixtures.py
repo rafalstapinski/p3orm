@@ -9,6 +9,11 @@ from test.fixtures.queries import BASE_DATA, BASE_TABLES_SQLITE
 
 @pytest.fixture
 def sqlite_base():
+    from p3orm import core
+
+    core.DRIVER = None
+    core.DIALECT = None
+
     connection = sqlite3.connect(":memory:")
     cursor = connection.cursor()
 
@@ -27,6 +32,10 @@ def sqlite_base():
 
 @pytest.fixture
 async def create_base_and_connect():
+    from p3orm import core
+
+    core.DRIVER = None
+    core.DIALECT = None
 
     db = sqlite()
     await db.connect(":memory:")

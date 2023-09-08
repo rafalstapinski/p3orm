@@ -13,8 +13,7 @@ from test.sqlite.fixtures.fixtures import sqlite_base
 
 
 @pytest.mark.asyncio
-async def test_connection():
-
+async def test_connection(sqlite_base):
     db = sqlite()
     await db.connect(":memory:")
 
@@ -30,6 +29,5 @@ async def test_connection():
 
 @pytest.mark.asyncio
 async def test_exception_when_not_connected(sqlite_base):
-
     with pytest.raises(NotConnected):
         await Company.fetch_all()
