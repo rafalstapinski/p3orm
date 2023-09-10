@@ -13,7 +13,6 @@ from test.fixtures.queries import BASE_DATA, BASE_TABLES_POSTGRES
 
 
 def create_base_tables(postgresql: connection):
-
     cursor = postgresql.cursor()
     cursor.execute(BASE_TABLES_POSTGRES)
     postgresql.commit()
@@ -21,7 +20,6 @@ def create_base_tables(postgresql: connection):
 
 
 def create_base_data(postgresql: connection):
-
     cursor = postgresql.cursor()
     cursor.execute(BASE_DATA)
     postgresql.commit()

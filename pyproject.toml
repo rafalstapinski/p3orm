@@ -14,14 +14,13 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 PyPika = "^0.48.8"
-pydantic = "^1.8.2"
 asyncpg = {version = "^0.26.0", optional = true}
 aiosqlite = {version = "^0.17.0", optional = true}
+pydantic = "^2.3.0"
 
 [tool.poetry.dev-dependencies]
-black = "^21.9b0"
 flake8 = "^4.0.1"
 pylint = "^2.11.1"
 isort = "^5.9.3"
@@ -38,6 +37,10 @@ structlog = "^22.1.0"
 [tool.poetry.extras]
 sqlite = ["aiosqlite"]
 postgres = ["asyncpg"]
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.0"
+tomli = "^2.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

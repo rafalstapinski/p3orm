@@ -37,7 +37,6 @@ def with_returning(query: QueryBuilder, returning: Optional[str] = "*") -> str:
 def paramaterize(
     criterion: Criterion, query_args: List[Any] = None, dialect: Dialects = None
 ) -> Tuple[Criterion, List[Any]]:
-
     if query_args == None:
         query_args = []
 

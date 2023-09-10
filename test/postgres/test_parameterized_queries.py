@@ -6,7 +6,6 @@ from test.postgres.fixtures.helpers import create_base_and_connect
 
 @pytest.mark.asyncio
 async def test_between(create_base_and_connect):
-
     companies = await Company.fetch_all(Company.id.between(1, 3))
 
     assert len(companies) == 3
@@ -17,7 +16,6 @@ async def test_between(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_isin(create_base_and_connect):
-
     companies = await Company.fetch_all(Company.name.isin(["Company 1", "Company 2"]))
 
     assert len(companies) == 2

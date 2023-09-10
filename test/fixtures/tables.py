@@ -7,7 +7,6 @@ from p3orm import Column, ForeignKeyRelationship, ReverseRelationship, Table
 
 
 class Company(Table):
-
     __tablename__ = "company"
 
     id = Column(int, pk=True, autogen=True)
@@ -19,7 +18,6 @@ class Company(Table):
 
 
 class Employee(Table):
-
     __tablename__ = "employee"
 
     id = Column(int, pk=True, autogen=True)
@@ -31,7 +29,6 @@ class Employee(Table):
 
 
 class OrgChart(Table):
-
     __tablename__ = "org_chart"
 
     id = Column(int, pk=True, autogen=True)

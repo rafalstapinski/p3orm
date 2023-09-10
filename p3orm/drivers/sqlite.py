@@ -13,7 +13,6 @@ from p3orm.types import Model
 
 
 class SqliteDriver(BaseDriver):
-
     connection: Connection
 
     def __init__(self):
@@ -39,7 +38,6 @@ class SqliteDriver(BaseDriver):
         query: Union[str, QueryBuilder],
         query_args: Sequence[Any] = None,
     ) -> Optional[Model]:
-
         results = await self.fetch_many(cls, query, query_args=query_args)
         return None if len(results) == 0 else results[0]
 
@@ -49,7 +47,6 @@ class SqliteDriver(BaseDriver):
         query: Union[str, QueryBuilder],
         query_args: Sequence[Any] = None,
     ) -> List[Model]:
-
         if isinstance(query, QueryBuilder):
             query = query.get_sql()
 

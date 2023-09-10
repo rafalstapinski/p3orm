@@ -9,7 +9,6 @@ from test.postgres.fixtures.helpers import create_base_and_connect
 
 
 def test_table_has_tablename():
-
     with pytest.raises(MissingTablename):
 
         class MyTable(Table):
@@ -18,7 +17,6 @@ def test_table_has_tablename():
 
 @pytest.mark.asyncio
 async def test_table_different_field_from_column(create_base_and_connect):
-
     company = await Company.fetch_one(Company.id == 1)
     assert company.some_property == "yeet"
 

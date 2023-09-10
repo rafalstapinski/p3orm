@@ -8,7 +8,6 @@ from test.sqlite.fixtures.fixtures import create_base_and_connect
 
 @pytest.mark.asyncio
 async def test_delete_one(create_base_and_connect):
-
     fetched = await Company.delete_where(Company.id == 2)
 
     assert len(fetched) == 1
