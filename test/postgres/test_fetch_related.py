@@ -8,7 +8,6 @@ from test.postgres.fixtures.helpers import create_base_and_connect
 
 @pytest.mark.asyncio
 async def test_fetch_related_foreign_key(create_base_and_connect):
-
     employee = await Employee.fetch_one(Employee.id == 1)
     [employee_with_company] = await Employee.fetch_related([employee], [[Employee.company]])
 
@@ -19,7 +18,6 @@ async def test_fetch_related_foreign_key(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_related_reverse_relation(create_base_and_connect):
-
     company = await Company.fetch_one(Company.id == 1)
     [company_with_employees] = await Company.fetch_related([company], [[Company.employees]])
 
@@ -30,7 +28,6 @@ async def test_fetch_related_reverse_relation(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_related_clears_unloaded_relationships(create_base_and_connect):
-
     company = await Company.fetch_one(Company.id == 2)
     [company_without_employees] = await Company.fetch_related([company], [[Company.employees]])
 
@@ -44,7 +41,6 @@ async def test_fetch_related_clears_unloaded_relationships(create_base_and_conne
 
 @pytest.mark.asyncio
 async def test_fetch_nested_relationship(create_base_and_connect):
-
     company = await Company.fetch_one(Company.id == 1)
     [company] = await Company.fetch_related([company], [[Company.employees, Employee.company]])
 
@@ -56,7 +52,6 @@ async def test_fetch_nested_relationship(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_multiple_relationships(create_base_and_connect):
-
     org_rel = await OrgChart.fetch_one(OrgChart.id == 1)
 
     [org_rel] = await OrgChart.fetch_related([org_rel], [[OrgChart.report], [OrgChart.manager]])

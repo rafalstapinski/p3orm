@@ -4,7 +4,6 @@ import p3orm
 
 
 def assert_versions_equal():
-
     with open("pyproject.toml", "rb") as pyproject:
         toml = tomli.load(pyproject)
 

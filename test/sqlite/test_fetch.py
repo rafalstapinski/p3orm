@@ -13,7 +13,6 @@ from test.sqlite.fixtures.fixtures import create_base_and_connect
 
 @pytest.mark.asyncio
 async def test_fetch_all(create_base_and_connect):
-
     companies = await Company.fetch_all()
 
     assert len(companies) == 4
@@ -24,7 +23,6 @@ async def test_fetch_all(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_all_filtering(create_base_and_connect):
-
     companies = await Company.fetch_all(Company.id < 3)
 
     assert len(companies) == 2
@@ -35,7 +33,6 @@ async def test_fetch_all_filtering(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_first_of_many(create_base_and_connect):
-
     company = await Company.fetch_first(Company.id < 3)
 
     assert company.id == 1
@@ -45,7 +42,6 @@ async def test_fetch_first_of_many(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_first_of_one(create_base_and_connect):
-
     company = await Company.fetch_first(Company.id == 1)
 
     assert company.id == 1
@@ -55,27 +51,23 @@ async def test_fetch_first_of_one(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_one(create_base_and_connect):
-
     assert await Company.fetch_one(Company.id == 1) == await Company.fetch_first(Company.id == 1)
 
 
 @pytest.mark.asyncio
 async def test_fetch_one_fails_with_multiple(create_base_and_connect):
-
     with pytest.raises(MultipleResultsReturned):
         await Company.fetch_one(Company.id != 1)
 
 
 @pytest.mark.asyncio
 async def test_fetch_one_fails_with_none(create_base_and_connect):
-
     with pytest.raises(NoResultsReturned):
         await Company.fetch_one(Company.id == 100)
 
 
 @pytest.mark.asyncio
 async def test_fetch_first_returns_none(create_base_and_connect):
-
     result = await Company.fetch_first(Company.id == 100)
 
     assert result == None
@@ -83,7 +75,6 @@ async def test_fetch_first_returns_none(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_all_returns_empty(create_base_and_connect):
-
     results = await Company.fetch_all(Company.id == 100)
 
     assert results == []
@@ -91,7 +82,6 @@ async def test_fetch_all_returns_empty(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_one_prefetch(create_base_and_connect):
-
     company_with_employees = await Company.fetch_one(Company.id == 1, prefetch=[[Company.employees]])
 
     employees = await Employee.fetch_all(Employee.company_id == company_with_employees.id)
@@ -101,7 +91,6 @@ async def test_fetch_one_prefetch(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_first_prefetch(create_base_and_connect):
-
     company_with_employees = await Company.fetch_first(Company.id == 1, prefetch=[[Company.employees]])
 
     employees = await Employee.fetch_all(Employee.company_id == company_with_employees.id)
@@ -111,7 +100,6 @@ async def test_fetch_first_prefetch(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_all_prefetch(create_base_and_connect):
-
     companies_with_employees = await Company.fetch_all(prefetch=[[Company.employees]])
 
     first_company_employees = await Employee.fetch_all(Employee.company_id == 1)
@@ -129,7 +117,6 @@ async def test_fetch_all_prefetch(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_order(create_base_and_connect):
-
     companies = await Company.fetch_all(Company.id.between(1, 3), order=Company.id, by=Order.desc)
 
     assert len(companies) == 3
@@ -140,7 +127,6 @@ async def test_order(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_limit(create_base_and_connect):
-
     companies = await Company.fetch_all(limit=2)
 
     assert len(companies) == 2

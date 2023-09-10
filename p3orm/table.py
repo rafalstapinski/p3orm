@@ -67,7 +67,6 @@ class Table:
 
     @classmethod
     def _create_model_factory(cls: Table) -> Type[BaseModel]:
-
         if hasattr(cls, "_model_factory") and cls._model_factory:
             return cls._model_factory
 

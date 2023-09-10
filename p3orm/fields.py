@@ -69,7 +69,6 @@ class RelationshipType(str, Enum):
 
 
 class _Relationship:
-
     self_column: str
     foreign_column: str
     relationship_type: RelationshipType

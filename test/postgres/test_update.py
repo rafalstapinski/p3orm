@@ -8,7 +8,6 @@ from test.postgres.fixtures.helpers import create_base_and_connect
 
 @pytest.mark.asyncio
 async def test_update_one(create_base_and_connect):
-
     fetched = await Company.fetch_one(Company.id == 1)
 
     fetched.name = "Company Name Changed"
@@ -25,7 +24,6 @@ async def test_update_one(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_update_one_prefetch(create_base_and_connect):
-
     employee = await Employee.fetch_one(Employee.id == 1)
 
     company_one = await Company.fetch_one(Company.id == 1)

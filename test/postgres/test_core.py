@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
 @pytest.mark.asyncio
 async def test_connection(postgresql: connection):
-
     db = postgres()
     await db.connect(**_get_connection_kwargs(postgresql))
 
@@ -35,7 +34,6 @@ async def test_connection(postgresql: connection):
 
 @pytest.mark.asyncio
 async def test_pool(postgresql: connection):
-
     db = postgres()
     await db.connect_pool(**_get_connection_kwargs(postgresql))
 
@@ -52,7 +50,6 @@ async def test_pool(postgresql: connection):
 
 @pytest.mark.asyncio
 async def test_cant_connect_with_both(postgresql: connection):
-
     db = postgres()
     await db.connect(**_get_connection_kwargs(postgresql))
 
@@ -71,7 +68,6 @@ async def test_cant_connect_with_both(postgresql: connection):
 
 @pytest.mark.asyncio
 async def test_exception_when_not_connected(postgresql: connection):
-
     create_base(postgresql)
 
     with pytest.raises(NotConnected):

@@ -11,7 +11,6 @@ from p3orm.utils import record_to_kwargs
 
 
 class ConnectionContext:
-
     connection: Connection
 
     def __init__(self, connection: Connection):
@@ -30,7 +29,6 @@ class PoolConnectionContext(PoolAcquireContext):
 
 
 class PostgresDriver(BaseDriver):
-
     connection: Connection
     pool: Pool
 
@@ -113,7 +111,6 @@ class PostgresDriver(BaseDriver):
         query: Union[str, QueryBuilder],
         query_args: Sequence[Any] = None,
     ) -> List[Model]:
-
         if isinstance(query, QueryBuilder):
             query = query.get_sql()
 
@@ -133,7 +130,6 @@ class PostgresDriver(BaseDriver):
         return [cls(**record_to_kwargs(row)) for row in results]
 
     def _acquire_connection(self) -> Union[ConnectionContext, PoolConnectionContext]:
-
         if self.connection:
             return ConnectionContext(self.connection)
 
@@ -143,7 +139,6 @@ class PostgresDriver(BaseDriver):
         raise NotConnected("No database connection or pool is established")
 
     def is_connected(self) -> bool:
-
         if self.connection and not self.connection.is_closed():
             return True
 
