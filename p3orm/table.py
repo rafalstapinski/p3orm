@@ -3,7 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Callable, Dict, Generator, List, Optional, Sequence, Type, Union, get_type_hints
 
-from pydantic import BaseConfig, BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.main import create_model
 from pypika import Order, Query
 from pypika.queries import QueryBuilder
@@ -26,18 +26,47 @@ from p3orm.utils import is_optional, paramaterize, with_returning
 FetchType = Sequence[Sequence[_Relationship]]
 
 
-class Table:
+class TableInstance(BaseModel):
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        populate_by_name=True,
+        frozen=False,
+    )
 
+    __pydantic_complete__ = False
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, BaseModel):
+            # When comparing instances of generic types for equality, as long as all field values are equal,
+            # only require their generic origin types to be equal, rather than exact type equality.
+            # This prevents headaches like MyGeneric(x=1) != MyGeneric[Any](x=1).
+            self_type = self.__pydantic_generic_metadata__["origin"] or self.__class__
+
+            other_type = other.__pydantic_generic_metadata__["origin"] or other.__class__
+
+            print(self_type, other_type)
+
+            return (
+                self.__dict__ == other.__dict__
+                and self.__pydantic_private__ == other.__pydantic_private__
+                and self.__pydantic_extra__ == other.__pydantic_extra__
+            )
+        else:
+            return NotImplemented  # delegate to the other item in the comparison
+
+
+class Table:
     __tablename__: str
 
     class Meta:
         meta_table: bool = False
 
+    _model_factory: type[BaseModel]
+
     #
     # Magic
     #
     def __new__(cls: Union[Type[Model], Table], /, **_create_fields: Dict[str, Any]) -> Model:
-
         create_fields = deepcopy(_create_fields)
 
         for relationship_name in cls._relationship_map():
@@ -47,10 +76,12 @@ class Table:
 
     @classmethod
     def _create_model_factory(cls: Table) -> Type[BaseModel]:
-        class _TableModelConfig(BaseConfig):
-            arbitrary_types_allowed = True
-            allow_population_by_field_name = True
-            fields = dict()
+
+        if hasattr(cls, "_model_factory") and cls._model_factory:
+            return cls._model_factory
+
+        class _TableInstance(TableInstance):
+            ...
 
         factory_model_kwargs = {}
         for field_name, field in cls._field_map().items():
@@ -60,13 +91,14 @@ class Table:
             if field.autogen or is_optional(field._type):
                 default = None
 
-            factory_model_kwargs[field_name] = (field._type, default)
-            _TableModelConfig.fields[field_name] = field.column_name
+            factory_model_kwargs[field_name] = (field._type, Field(default, alias=field.column_name))
 
         for relationship_name in cls._relationship_map():
             factory_model_kwargs[relationship_name] = (UNLOADED, None)
 
-        return create_model(cls.__name__, __config__=_TableModelConfig, **factory_model_kwargs)
+        factory = create_model(cls.__name__, __base__=_TableInstance, **factory_model_kwargs)
+        cls._model_factory = factory
+        return cls._model_factory
 
     def __init_subclass__(cls) -> None:
         if (not hasattr(cls, "__tablename__") or cls.__tablename__ is None) and cls.Meta.meta_table == False:
@@ -80,6 +112,8 @@ class Table:
 
         elif num_pkeys > 1:
             raise MultiplePrimaryKeys(f"{cls.__name__} has more than 1 primary key field (check parent classes)")
+
+        cls._create_model_factory()
 
     @classmethod
     def __get_validators__(cls) -> Generator[Callable, None, None]:
@@ -176,7 +210,6 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> Model:
-
         query: QueryBuilder = Query.into(cls.__tablename__).columns(cls._fields(exclude_autogen=True))
 
         query_args = cls._db_values(item, exclude_autogen=True)
@@ -199,7 +232,6 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> List[Model]:
-
         if not items:
             return []
 
@@ -228,7 +260,6 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> Optional[Model]:
-
         paramaterized_criterion, query_args = paramaterize(criterion, dialect=dialect())
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(1)
@@ -248,7 +279,6 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> Model:
-
         paramaterized_criterion, query_args = paramaterize(criterion, dialect=dialect())
 
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
@@ -279,7 +309,6 @@ class Table:
         limit: int = None,
         prefetch: FetchType = None,
     ) -> List[Model]:
-
         query: QueryBuilder = cls.select()
 
         query_args = None
@@ -309,7 +338,6 @@ class Table:
         *,
         prefetch: FetchType = None,
     ) -> Model:
-
         query: QueryBuilder = querybuilder().update(cls.__tablename__)
 
         pk = cls._primary_key()
@@ -331,7 +359,6 @@ class Table:
 
     @classmethod
     async def delete_where(cls: Union[Type[Model], Table], /, criterion: Criterion) -> List[Model]:
-
         query: QueryBuilder = querybuilder().delete()
         query = query.from_(cls.__tablename__)
 
@@ -426,7 +453,6 @@ class Table:
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
     ) -> List[Model]:
-
-        items = [i.copy() for i in items]
+        items = [i.model_copy() for i in items]
         await cls._load_relationships_for_items(items, _relationships)
         return items
