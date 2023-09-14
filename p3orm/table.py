@@ -91,8 +91,13 @@ class Table:
         return cls._model_factory
 
     def __init_subclass__(cls) -> None:
+        # raise if concrete table without tablename
         if (not hasattr(cls, "__tablename__") or cls.__tablename__ is None) and cls.Meta.meta_table == False:
             raise MissingTablename(f"{cls.__name__} must define a __tablename__ property")
+
+        # don't calculate for meta tables
+        elif cls.Meta.meta_table and not hasattr(cls, "__tablename__"):
+            return
 
         fields = cls._fields()
 
@@ -169,6 +174,10 @@ class Table:
     @classmethod
     def _field(cls, field_name: str) -> _PormField:
         return cls._field_map()[field_name]
+
+    @classmethod
+    def is_type(cls, obj: Any) -> bool:
+        return obj.__class__ == cls._model_factory
 
     #
     # Shortcuts
