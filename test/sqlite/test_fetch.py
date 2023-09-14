@@ -51,7 +51,11 @@ async def test_fetch_first_of_one(create_base_and_connect):
 
 @pytest.mark.asyncio
 async def test_fetch_one(create_base_and_connect):
-    assert await Company.fetch_one(Company.id == 1) == await Company.fetch_first(Company.id == 1)
+    one = await Company.fetch_one(Company.id == 1)
+    first = await Company.fetch_first(Company.id == 1)
+
+    assert one == first
+    assert Company.is_type(one)
 
 
 @pytest.mark.asyncio
