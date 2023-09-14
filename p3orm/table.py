@@ -94,6 +94,16 @@ class Table:
         if (not hasattr(cls, "__tablename__") or cls.__tablename__ is None) and cls.Meta.meta_table == False:
             raise MissingTablename(f"{cls.__name__} must define a __tablename__ property")
 
+        # if meta table, dont create model for this only end tables should
+        # consider moving to a model where there's a global mapping of table->class/fields/factory
+        # instead existing per table
+
+        # TODO: refactor this if/elif better
+        # TODO: figure out way to do isinstance type checks
+        # TODO: add test to check for the broken case
+        elif cls.Meta.meta_table and not hasattr(cls, "__tablename__"):
+            return
+
         fields = cls._fields()
 
         num_pkeys = len([f for f in fields if f.pk])
