@@ -122,9 +122,6 @@ class PostgresDriver(BaseDriver):
         if query_args:
             fetch_arguments += query_args
 
-        print(f"\n\n{query=}\n\n")
-        print(f"\n\n{query_args=} {fetch_arguments=}\n\n")
-
         results: List[Record] = []
 
         async with self._acquire_connection() as connection:

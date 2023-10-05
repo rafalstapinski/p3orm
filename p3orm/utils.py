@@ -46,15 +46,12 @@ def _param(index: int) -> Parameter:
 
 def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int = 0) -> Tuple[Criterion, List[Any]]:
     if isinstance(criterion, ComplexCriterion):
-        left, query_args = _parameterize(criterion.left, query_args, dialect, param_index)
-        right, query_args = _parameterize(criterion.right, query_args, dialect, param_index)
+        left, query_args = _parameterize(criterion.left, query_args, param_index)
+        right, query_args = _parameterize(criterion.right, query_args, param_index + len(query_args))
         return ComplexCriterion(criterion.comparator, left, right, criterion.alias), query_args
 
     elif isinstance(criterion, BasicCriterion):
-        print(f"\n within parameterize func")
-        print(f"\n\n{criterion.right.value=}\n\n")
         query_args.append(criterion.right.value)
-        print(f"\n{query_args=}\n\n")
         param_index += 1
         return (
             BasicCriterion(
@@ -74,16 +71,6 @@ def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int 
             for i in range(len(criterion_args)):
                 param_index += 1
                 params.append(f"${param_index}")
-
-            # return (
-            #     ContainsCriterion(
-            #         criterion.term,
-            #         ", ".join(params),
-            #         container.alias,
-            #     ),
-            #     query_args,
-            # )
-
             return (
                 BasicCriterion(
                     PormComparator.in_,
@@ -93,16 +80,6 @@ def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int 
                 ),
                 query_args,
             )
-
-            # return (
-            #     BasicCriterion(
-            #         Equality.eq,
-            #         criterion.term,
-            #         _param(len(query_args)),
-            #         criterion.alias,
-            #     ),
-            #     query_args,
-            # )
         else:
             qs = ", ".join("?" for i in range(len(criterion.container.values)))
             param = Parameter(f"IN ({qs})")
@@ -116,11 +93,6 @@ def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int 
             return BasicCriterion(PormComparator.empty, criterion.term, param, criterion.alias), query_args
 
     elif isinstance(criterion, RangeCriterion):
-        # query_args.append(criterion.start.value)
-        # start_param = _param(len(query_args))
-        # query_args.append(criterion.end.value)
-        # end_param = _param(len(query_args))
-
         query_args += [criterion.start.value, criterion.end.value]
         param_index += 1
         start_param = _param(param_index)

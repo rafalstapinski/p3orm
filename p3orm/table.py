@@ -280,7 +280,6 @@ class Table:
     ) -> Model:
         paramaterized_criterion, query_args = paramaterize(criterion)
 
-        print(f"\n\n query args from paramaterize fun: {query_args=}")
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(2)
 
@@ -313,7 +312,6 @@ class Table:
 
         query_args = None
         if criterion:
-            print(f"{criterion=}")
             parameterized_criterion, query_args = paramaterize(criterion)
             query = query.where(parameterized_criterion)
 
@@ -323,8 +321,6 @@ class Table:
 
         if limit:
             query = query.limit(limit)
-
-        print(f"\n\n{query.get_sql()=}\n\n")
 
         results = await driver().fetch_many(cls, query.get_sql(), query_args)
 
@@ -412,7 +408,6 @@ class Table:
                 relationship_table._field(relationship.foreign_column).isin(keys),
             )
 
-            print(f"\n\n query args from parameterize in prefetcher {query_args=}")
             sub_items_query: QueryBuilder = relationship_table.select().where(paramaterized_criterion)
 
             sub_items = await driver().fetch_many(relationship_table, sub_items_query.get_sql(), query_args)

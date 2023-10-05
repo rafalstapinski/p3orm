@@ -13,15 +13,14 @@ from test.sqlite.fixtures.fixtures import create_base_and_connect
 
 @pytest.mark.asyncio
 async def test_fetch_all(create_base_and_connect):
-    # companies = await Company.fetch_all()
-    #
-    # assert len(companies) == 4
-    # assert [c.id for c in companies] == [1, 2, 3, 4]
-    # assert [c.name for c in companies] == ["Company 1", "Company 2", "Company 3", "Company 4"]
-    # assert [isinstance(c.created_at, datetime) for c in companies] == [True] * 4
+    companies = await Company.fetch_all()
+
+    assert len(companies) == 4
+    assert [c.id for c in companies] == [1, 2, 3, 4]
+    assert [c.name for c in companies] == ["Company 1", "Company 2", "Company 3", "Company 4"]
+    assert [isinstance(c.created_at, datetime) for c in companies] == [True] * 4
 
     companies = await Company.fetch_all(Company.id == 1 or Company.id == 2)
-    print(companies)
 
 
 @pytest.mark.asyncio

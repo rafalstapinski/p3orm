@@ -13,15 +13,20 @@ from test.postgres.fixtures.helpers import create_base_and_connect
 
 @pytest.mark.asyncio
 async def test_fetch_all(create_base_and_connect):
-    # companies = await Company.fetch_all()
-    #
-    # assert len(companies) == 4
-    # assert [c.id for c in companies] == [1, 2, 3, 4]
-    # assert [c.name for c in companies] == ["Company 1", "Company 2", "Company 3", "Company 4"]
-    # assert [isinstance(c.created_at, datetime) for c in companies] == [True] * 4
-    print(f"\n{(Company.id == 2)=} {(type(Company.id == 2))} \n")
+    companies = await Company.fetch_all()
+
+    assert len(companies) == 4
+    assert [c.id for c in companies] == [1, 2, 3, 4]
+    assert [c.name for c in companies] == ["Company 1", "Company 2", "Company 3", "Company 4"]
+    assert [isinstance(c.created_at, datetime) for c in companies] == [True] * 4
+
+
+@pytest.mark.asyncio
+async def test_fetch_complex_criterion(create_base_and_connect):
     companies = await Company.fetch_all((Company.id == 1) | (Company.id == 2))
-    print(companies)
+
+    assert len(companies) == 2
+    assert {c.id for c in companies} == {1, 2}
 
 
 @pytest.mark.asyncio
