@@ -9,7 +9,7 @@ from pypika import Order, Query
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Parameter
 
-from p3orm.core import dialect, driver, querybuilder
+from p3orm.core import driver, querybuilder
 from p3orm.exceptions import (
     InvalidRelationship,
     MissingPrimaryKey,
