@@ -22,6 +22,14 @@ async def test_fetch_all(create_base_and_connect):
 
 
 @pytest.mark.asyncio
+async def test_fetch_complex_criterion(create_base_and_connect):
+    companies = await Company.fetch_all((Company.id == 1) | (Company.id == 2))
+
+    assert len(companies) == 2
+    assert {c.id for c in companies} == {1, 2}
+
+
+@pytest.mark.asyncio
 async def test_fetch_all_filtering(create_base_and_connect):
     companies = await Company.fetch_all(Company.id < 3)
 

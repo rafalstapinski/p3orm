@@ -20,6 +20,8 @@ async def test_fetch_all(create_base_and_connect):
     assert [c.name for c in companies] == ["Company 1", "Company 2", "Company 3", "Company 4"]
     assert [isinstance(c.created_at, datetime) for c in companies] == [True] * 4
 
+    companies = await Company.fetch_all(Company.id == 1 or Company.id == 2)
+
 
 @pytest.mark.asyncio
 async def test_fetch_all_filtering(create_base_and_connect):

@@ -7,7 +7,6 @@ from pypika.queries import QueryBuilder
 
 from p3orm.drivers.base import BaseDriver
 from p3orm.exceptions import NotConnected
-from p3orm.utils import validate_sqlite_version
 
 if TYPE_CHECKING:
     from p3orm.drivers.postgres import PostgresDriver
@@ -30,6 +29,7 @@ def postgres() -> PostgresDriver:
 
 def sqlite() -> SqliteDriver:
     from p3orm.drivers.sqlite import SqliteDriver
+    from p3orm.utils import validate_sqlite_version
 
     global DRIVER, DIALECT
     if DRIVER:
