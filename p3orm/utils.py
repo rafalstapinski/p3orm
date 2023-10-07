@@ -13,14 +13,11 @@ from pypika.terms import (
     ComplexCriterion,
     ContainsCriterion,
     Criterion,
-    Dialects,
-    Equality,
     NullValue,
     Parameter,
     RangeCriterion,
 )
 
-from p3orm.core import dialect
 from p3orm.exceptions import InvalidSQLiteVersion
 
 
