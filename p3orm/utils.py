@@ -38,10 +38,11 @@ def with_returning(query: QueryBuilder, returning: Optional[str] = "*") -> str:
 
 
 def _param(index: int) -> Parameter:
-    if dialect() == Dialects.SQLLITE:
-        return Parameter("?")
-    else:
-        return Parameter(f"${index}")
+    # if dialect() == Dialects.SQLLITE:
+    #     return Parameter("?")
+    # else:
+    #     return Parameter(f"${index}")
+    return Parameter(f"${index}")
 
 
 def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int = 0) -> Tuple[Criterion, List[Any]]:
@@ -64,33 +65,21 @@ def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int 
         )
 
     elif isinstance(criterion, ContainsCriterion):
-        if dialect() == Dialects.POSTGRESQL:
-            criterion_args = [i.value for i in criterion.container.values if not isinstance(i, NullValue)]
-            query_args += criterion_args
-            params = []
-            for i in range(len(criterion_args)):
-                param_index += 1
-                params.append(f"${param_index}")
-            return (
-                BasicCriterion(
-                    PormComparator.in_,
-                    criterion.term,
-                    Parameter(f"""({", ".join(params)})"""),
-                    criterion.alias,
-                ),
-                query_args,
-            )
-        else:
-            qs = ", ".join("?" for i in range(len(criterion.container.values)))
-            param = Parameter(f"IN ({qs})")
-
-            for i in criterion.container.values:
-                if not isinstance(i, NullValue):
-                    query_args.append(i.value)
-                else:
-                    query_args.append(None)
-
-            return BasicCriterion(PormComparator.empty, criterion.term, param, criterion.alias), query_args
+        criterion_args = [i.value if not isinstance(i, NullValue) else None for i in criterion.container.values]
+        query_args += criterion_args
+        params = []
+        for i in range(len(criterion_args)):
+            param_index += 1
+            params.append(f"${param_index}")
+        return (
+            BasicCriterion(
+                PormComparator.in_,
+                criterion.term,
+                Parameter(f"""({", ".join(params)})"""),
+                criterion.alias,
+            ),
+            query_args,
+        )
 
     elif isinstance(criterion, RangeCriterion):
         query_args += [criterion.start.value, criterion.end.value]
