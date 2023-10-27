@@ -1,34 +1,37 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 from p3orm import Column, ForeignKeyRelationship, ReverseRelationship, Table
 
 
-class Company(Table):
+class Entity(Table):
+    ...
+
+class Company(Entity):
     __tablename__ = "company"
 
     id = Column(int, pk=True, autogen=True)
     name = Column(str)
     created_at = Column(datetime, autogen=True)
-    some_property = Column(Optional[str], "column_name")
+    some_property = Column(str | None, "column_name")
 
     employees: List[Employee] = ReverseRelationship(self_column="id", foreign_column="company_id")
 
 
-class Employee(Table):
+class Employee(Entity):
     __tablename__ = "employee"
 
     id = Column(int, pk=True, autogen=True)
     name = Column(str)
-    company_id = Column(Optional[int])
+    company_id = Column(int | None)
     created_at = Column(datetime, autogen=True)
 
     company: Company = ForeignKeyRelationship(self_column="company_id", foreign_column="id")
 
 
-class OrgChart(Table):
+class OrgChart(Entity):
     __tablename__ = "org_chart"
 
     id = Column(int, pk=True, autogen=True)
