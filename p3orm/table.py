@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Callable, Dict, Generator, List, Optional, Sequence, Type, Union, get_type_hints
+from typing import Any, Callable, Dict, Generator, List, Optional, Self, Sequence, Type, Union, get_type_hints
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.main import create_model
@@ -25,7 +25,6 @@ from p3orm.utils import is_optional, paramaterize, with_returning
 
 FetchType = Sequence[Sequence[_Relationship]]
 
-
 class TableInstance(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
@@ -47,6 +46,7 @@ class TableInstance(BaseModel):
 
 
 class Table:
+# class Table:
     __tablename__: str
 
     class Meta:
@@ -203,12 +203,12 @@ class Table:
     #
     @classmethod
     async def insert_one(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
         item: Model,
         *,
         prefetch: FetchType = None,
-    ) -> Model:
+    ) -> Self:
         query: QueryBuilder = Query.into(cls.__tablename__).columns(cls._fields(exclude_autogen=True))
 
         query_args = cls._db_values(item, exclude_autogen=True)
@@ -216,7 +216,7 @@ class Table:
 
         query = query.insert(query_params)
 
-        inserted: Optional[Model] = await driver().fetch_one(cls, with_returning(query), query_args)
+        inserted: Optional[Self] = await driver().fetch_one(cls, with_returning(query), query_args)
 
         if prefetch and inserted:
             [inserted] = await cls.fetch_related([inserted], prefetch)
@@ -225,12 +225,12 @@ class Table:
 
     @classmethod
     async def insert_many(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
-        items: List[Model],
+        items: List[Self],
         *,
         prefetch: FetchType = None,
-    ) -> List[Model]:
+    ) -> List[Self]:
         if not items:
             return []
 
@@ -253,12 +253,12 @@ class Table:
 
     @classmethod
     async def fetch_first(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
         criterion: Criterion,
         *,
         prefetch: FetchType = None,
-    ) -> Optional[Model]:
+    ) -> Self | None:
         paramaterized_criterion, query_args = paramaterize(criterion)
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(1)
@@ -272,12 +272,12 @@ class Table:
 
     @classmethod
     async def fetch_one(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
         criterion: Criterion,
         *,
         prefetch: FetchType = None,
-    ) -> Model:
+    ) -> Self:
         paramaterized_criterion, query_args = paramaterize(criterion)
 
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
@@ -299,7 +299,7 @@ class Table:
 
     @classmethod
     async def fetch_all(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
         criterion: Criterion = None,
         *,
@@ -307,7 +307,7 @@ class Table:
         by: Order = Order.asc,
         limit: int = None,
         prefetch: FetchType = None,
-    ) -> List[Model]:
+    ) -> List[Self]:
         query: QueryBuilder = cls.select()
 
         query_args = None
@@ -331,12 +331,12 @@ class Table:
 
     @classmethod
     async def update_one(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
-        item: Model,
+        item: Self,
         *,
         prefetch: FetchType = None,
-    ) -> Model:
+    ) -> Self:
         query: QueryBuilder = querybuilder().update(cls.__tablename__)
 
         pk = cls._primary_key()
@@ -357,7 +357,7 @@ class Table:
         return updated
 
     @classmethod
-    async def delete_where(cls: Union[Type[Model], Table], /, criterion: Criterion) -> List[Model]:
+    async def delete_where(cls: Union[Type[Self], Table], /, criterion: Criterion) -> List[Self]:
         query: QueryBuilder = querybuilder().delete()
         query = query.from_(cls.__tablename__)
 
@@ -368,11 +368,11 @@ class Table:
 
     @classmethod
     async def _load_relationships_for_items(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
-    ) -> List[Model]:
+    ):
         """Loads relationships, updates items in place"""
         relationship_map = cls._relationship_map()
         type_hints = get_type_hints(cls)
@@ -447,11 +447,11 @@ class Table:
 
     @classmethod
     async def fetch_related(
-        cls: Union[Type[Model], Table],
+        cls: Union[Type[Self], Table],
         /,
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
-    ) -> List[Model]:
+    ) -> List[Self]:
         items = [i.model_copy() for i in items]
         await cls._load_relationships_for_items(items, _relationships)
         return items
