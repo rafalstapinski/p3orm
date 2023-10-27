@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Callable, Dict, Generator, List, Optional, Self, Sequence, Type, Union, get_type_hints
+import sys
+from typing import Any, Callable, Dict, Generator, List, Sequence, Type, Union, get_type_hints
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.main import create_model
@@ -22,6 +23,11 @@ from p3orm.exceptions import (
 from p3orm.fields import UNLOADED, RelationshipType, _PormField, _Relationship
 from p3orm.types import Model
 from p3orm.utils import is_optional, paramaterize, with_returning
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
 
 FetchType = Sequence[Sequence[_Relationship]]
 
