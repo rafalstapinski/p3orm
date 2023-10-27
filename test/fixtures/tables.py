@@ -10,6 +10,7 @@ class Entity(Table):
     class Meta:
         meta_table = True
 
+
 class Company(Entity):
     __tablename__ = "company"
 
