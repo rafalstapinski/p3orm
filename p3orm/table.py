@@ -25,6 +25,7 @@ from p3orm.utils import is_optional, paramaterize, with_returning
 
 FetchType = Sequence[Sequence[_Relationship]]
 
+
 class TableInstance(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
@@ -46,7 +47,7 @@ class TableInstance(BaseModel):
 
 
 class Table:
-# class Table:
+    # class Table:
     __tablename__: str
 
     class Meta:
@@ -139,7 +140,7 @@ class Table:
         raise MissingRelationship(f"_Relationship {relationship} does not exist on {cls.__name__}")
 
     @classmethod
-    def _fields(cls, exclude_autogen: Optional[bool] = False) -> List[_PormField]:
+    def _fields(cls, exclude_autogen: bool | None = False) -> List[_PormField]:
         fields: List[_PormField] = []
         for table in cls.__mro__:
             for field_name in table.__dict__:
@@ -156,16 +157,16 @@ class Table:
         return fields
 
     @classmethod
-    def _field_map(cls, exclude_autogen: Optional[bool] = False) -> Dict[str, _PormField]:
+    def _field_map(cls, exclude_autogen: bool | None = False) -> Dict[str, _PormField]:
         fields = cls._fields(exclude_autogen)
         return {f.field_name: f for f in fields}
 
     @classmethod
-    def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> List[Any]:
+    def _db_values(cls, item: Model, exclude_autogen: bool | None = False) -> List[Any]:
         return [getattr(item, field.field_name) for field in cls._fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
-    def _primary_key(cls) -> Optional[_PormField]:
+    def _primary_key(cls) -> _PormField | None:
         for field in cls._fields():
             if field.pk:
                 return field
@@ -203,7 +204,7 @@ class Table:
     #
     @classmethod
     async def insert_one(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         item: Model,
         *,
@@ -216,7 +217,7 @@ class Table:
 
         query = query.insert(query_params)
 
-        inserted: Optional[Self] = await driver().fetch_one(cls, with_returning(query), query_args)
+        inserted: Self | None = await driver().fetch_one(cls, with_returning(query), query_args)
 
         if prefetch and inserted:
             [inserted] = await cls.fetch_related([inserted], prefetch)
@@ -225,7 +226,7 @@ class Table:
 
     @classmethod
     async def insert_many(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         items: List[Self],
         *,
@@ -253,7 +254,7 @@ class Table:
 
     @classmethod
     async def fetch_first(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         criterion: Criterion,
         *,
@@ -272,7 +273,7 @@ class Table:
 
     @classmethod
     async def fetch_one(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         criterion: Criterion,
         *,
@@ -299,7 +300,7 @@ class Table:
 
     @classmethod
     async def fetch_all(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         criterion: Criterion = None,
         *,
@@ -331,7 +332,7 @@ class Table:
 
     @classmethod
     async def update_one(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         item: Self,
         *,
@@ -357,7 +358,7 @@ class Table:
         return updated
 
     @classmethod
-    async def delete_where(cls: Union[Type[Self], Table], /, criterion: Criterion) -> List[Self]:
+    async def delete_where(cls: Type[Self] | Table, /, criterion: Criterion) -> List[Self]:
         query: QueryBuilder = querybuilder().delete()
         query = query.from_(cls.__tablename__)
 
@@ -368,7 +369,7 @@ class Table:
 
     @classmethod
     async def _load_relationships_for_items(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
@@ -447,7 +448,7 @@ class Table:
 
     @classmethod
     async def fetch_related(
-        cls: Union[Type[Self], Table],
+        cls: Type[Self] | Table,
         /,
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
