@@ -19,6 +19,7 @@ PyPika = "^0.48.8"
 asyncpg = {version = "^0.26.0", optional = true}
 aiosqlite = {version = "^0.17.0", optional = true}
 pydantic = "^2.3.0"
+typing-extensions = "^4.8.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

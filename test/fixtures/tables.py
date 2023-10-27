@@ -6,7 +6,12 @@ from typing import List, Optional
 from p3orm import Column, ForeignKeyRelationship, ReverseRelationship, Table
 
 
-class Company(Table):
+class Entity(Table):
+    class Meta:
+        meta_table = True
+
+
+class Company(Entity):
     __tablename__ = "company"
 
     id = Column(int, pk=True, autogen=True)
@@ -17,7 +22,7 @@ class Company(Table):
     employees: List[Employee] = ReverseRelationship(self_column="id", foreign_column="company_id")
 
 
-class Employee(Table):
+class Employee(Entity):
     __tablename__ = "employee"
 
     id = Column(int, pk=True, autogen=True)
@@ -28,7 +33,7 @@ class Employee(Table):
     company: Company = ForeignKeyRelationship(self_column="company_id", foreign_column="id")
 
 
-class OrgChart(Table):
+class OrgChart(Entity):
     __tablename__ = "org_chart"
 
     id = Column(int, pk=True, autogen=True)

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import sys
 from copy import deepcopy
-from typing import Any, Callable, Dict, Generator, List, Optional, Sequence, Type, Union, get_type_hints
+from typing import Any, Callable, Dict, Generator, List, Sequence, Type, Union, get_type_hints
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.main import create_model
@@ -22,6 +23,11 @@ from p3orm.exceptions import (
 from p3orm.fields import UNLOADED, RelationshipType, _PormField, _Relationship
 from p3orm.types import Model
 from p3orm.utils import is_optional, paramaterize, with_returning
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
 
 FetchType = Sequence[Sequence[_Relationship]]
 
@@ -47,6 +53,7 @@ class TableInstance(BaseModel):
 
 
 class Table:
+    # class Table:
     __tablename__: str
 
     class Meta:
@@ -139,7 +146,7 @@ class Table:
         raise MissingRelationship(f"_Relationship {relationship} does not exist on {cls.__name__}")
 
     @classmethod
-    def _fields(cls, exclude_autogen: Optional[bool] = False) -> List[_PormField]:
+    def _fields(cls, exclude_autogen: bool | None = False) -> List[_PormField]:
         fields: List[_PormField] = []
         for table in cls.__mro__:
             for field_name in table.__dict__:
@@ -156,16 +163,16 @@ class Table:
         return fields
 
     @classmethod
-    def _field_map(cls, exclude_autogen: Optional[bool] = False) -> Dict[str, _PormField]:
+    def _field_map(cls, exclude_autogen: bool | None = False) -> Dict[str, _PormField]:
         fields = cls._fields(exclude_autogen)
         return {f.field_name: f for f in fields}
 
     @classmethod
-    def _db_values(cls, item: Model, exclude_autogen: Optional[bool] = False) -> List[Any]:
+    def _db_values(cls, item: Model, exclude_autogen: bool | None = False) -> List[Any]:
         return [getattr(item, field.field_name) for field in cls._fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
-    def _primary_key(cls) -> Optional[_PormField]:
+    def _primary_key(cls) -> _PormField | None:
         for field in cls._fields():
             if field.pk:
                 return field
@@ -203,12 +210,12 @@ class Table:
     #
     @classmethod
     async def insert_one(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
         item: Model,
         *,
         prefetch: FetchType = None,
-    ) -> Model:
+    ) -> Self:
         query: QueryBuilder = Query.into(cls.__tablename__).columns(cls._fields(exclude_autogen=True))
 
         query_args = cls._db_values(item, exclude_autogen=True)
@@ -216,7 +223,7 @@ class Table:
 
         query = query.insert(query_params)
 
-        inserted: Optional[Model] = await driver().fetch_one(cls, with_returning(query), query_args)
+        inserted: Self | None = await driver().fetch_one(cls, with_returning(query), query_args)
 
         if prefetch and inserted:
             [inserted] = await cls.fetch_related([inserted], prefetch)
@@ -225,12 +232,12 @@ class Table:
 
     @classmethod
     async def insert_many(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
-        items: List[Model],
+        items: List[Self],
         *,
         prefetch: FetchType = None,
-    ) -> List[Model]:
+    ) -> List[Self]:
         if not items:
             return []
 
@@ -253,12 +260,12 @@ class Table:
 
     @classmethod
     async def fetch_first(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
         criterion: Criterion,
         *,
         prefetch: FetchType = None,
-    ) -> Optional[Model]:
+    ) -> Self | None:
         paramaterized_criterion, query_args = paramaterize(criterion)
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
         query = query.limit(1)
@@ -272,12 +279,12 @@ class Table:
 
     @classmethod
     async def fetch_one(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
         criterion: Criterion,
         *,
         prefetch: FetchType = None,
-    ) -> Model:
+    ) -> Self:
         paramaterized_criterion, query_args = paramaterize(criterion)
 
         query: QueryBuilder = cls.select().where(paramaterized_criterion)
@@ -299,7 +306,7 @@ class Table:
 
     @classmethod
     async def fetch_all(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
         criterion: Criterion = None,
         *,
@@ -307,7 +314,7 @@ class Table:
         by: Order = Order.asc,
         limit: int = None,
         prefetch: FetchType = None,
-    ) -> List[Model]:
+    ) -> List[Self]:
         query: QueryBuilder = cls.select()
 
         query_args = None
@@ -331,12 +338,12 @@ class Table:
 
     @classmethod
     async def update_one(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
-        item: Model,
+        item: Self,
         *,
         prefetch: FetchType = None,
-    ) -> Model:
+    ) -> Self:
         query: QueryBuilder = querybuilder().update(cls.__tablename__)
 
         pk = cls._primary_key()
@@ -357,7 +364,7 @@ class Table:
         return updated
 
     @classmethod
-    async def delete_where(cls: Union[Type[Model], Table], /, criterion: Criterion) -> List[Model]:
+    async def delete_where(cls: Type[Self] | Table, /, criterion: Criterion) -> List[Self]:
         query: QueryBuilder = querybuilder().delete()
         query = query.from_(cls.__tablename__)
 
@@ -368,11 +375,11 @@ class Table:
 
     @classmethod
     async def _load_relationships_for_items(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
-    ) -> List[Model]:
+    ):
         """Loads relationships, updates items in place"""
         relationship_map = cls._relationship_map()
         type_hints = get_type_hints(cls)
@@ -447,11 +454,11 @@ class Table:
 
     @classmethod
     async def fetch_related(
-        cls: Union[Type[Model], Table],
+        cls: Type[Self] | Table,
         /,
         items: List[Union[Model, BaseModel]],
         _relationships: FetchType,
-    ) -> List[Model]:
+    ) -> List[Self]:
         items = [i.model_copy() for i in items]
         await cls._load_relationships_for_items(items, _relationships)
         return items
