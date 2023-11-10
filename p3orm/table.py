@@ -4,7 +4,7 @@ import sys
 from copy import deepcopy
 from typing import Any, Callable, Dict, Generator, List, Sequence, Type, Union, get_type_hints
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo
 from pydantic.main import create_model
 from pypika import Order, Query
 from pypika.queries import QueryBuilder
@@ -122,7 +122,7 @@ class Table:
         yield cls.__validate
 
     @classmethod
-    def __validate(cls, v: Model | Any) -> Model:
+    def __validate(cls, v: Model | Any, _: ValidationInfo) -> Model:
         assert (
             hasattr(v.__class__, "schema") and v.__class__.schema() == cls._create_model_factory().schema()
         ), f"must be a valid {cls.__name__}"
