@@ -1,6 +1,6 @@
 """Utilitarian Python ORM for Postgres/SQLite, backed by asyncpg/aiosqlite, Pydantic, and PyPika"""
 
-__version__ = "0.10.0"
+__version__ = "0.10.1"
 
 # Provided for convenience
 from pypika import Order
