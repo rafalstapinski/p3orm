@@ -73,7 +73,7 @@ class Table:
         return cls._create_model_factory()(**create_fields)
 
     @classmethod
-    def _create_model_factory(cls: Table) -> Type[BaseModel]:
+    def _create_model_factory(cls: Type[Table]) -> Type[BaseModel]:
         if hasattr(cls, "_model_factory") and cls._model_factory:
             return cls._model_factory
 
@@ -97,7 +97,7 @@ class Table:
         cls._model_factory = factory
         return cls._model_factory
 
-    def __init_subclass__(cls) -> None:
+    def __init_subclass__(cls: Type[Table]) -> None:
         # raise if concrete table without tablename
         if (not hasattr(cls, "__tablename__") or cls.__tablename__ is None) and cls.Meta.meta_table == False:
             raise MissingTablename(f"{cls.__name__} must define a __tablename__ property")
@@ -123,9 +123,7 @@ class Table:
 
     @classmethod
     def __validate(cls, v: Model | Any, _: ValidationInfo) -> Model:
-        assert (
-            hasattr(v.__class__, "schema") and v.__class__.schema() == cls._create_model_factory().schema()
-        ), f"must be a valid {cls.__name__}"
+        assert cls.__name__ == v.__class__.__name__, f"must be a valid {cls.__name__}"
         return v
 
     #
@@ -168,7 +166,7 @@ class Table:
         return {f.field_name: f for f in fields}
 
     @classmethod
-    def _db_values(cls, item: Model, exclude_autogen: bool | None = False) -> List[Any]:
+    def _db_values(cls, item: Self, exclude_autogen: bool | None = False) -> List[Any]:
         return [getattr(item, field.field_name) for field in cls._fields(exclude_autogen=exclude_autogen)]
 
     @classmethod
