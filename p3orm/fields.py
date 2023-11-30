@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import NoReturn, Optional, Type, Union
+from typing import NoReturn, Optional, Type
 
 from pypika import Field
 
@@ -27,8 +27,8 @@ class UNLOADED:
 
 
 class _PormField(Field):
-    pk: bool
-    autogen: bool
+    pk: bool | None
+    autogen: bool | None
     _type: Type
     field_name: str
 
@@ -50,11 +50,11 @@ class _PormField(Field):
 
 def Column(
     _type: Type[T],
-    column_name: Optional[str] = None,
+    column_name: str | None = None,
     *,
-    pk: Optional[bool] = False,
-    autogen: Optional[bool] = False,
-) -> Union[T, _PormField]:
+    pk: bool | None = False,
+    autogen: bool | None = False,
+) -> T:
     return _PormField(
         _type=_type,
         column_name=column_name,
