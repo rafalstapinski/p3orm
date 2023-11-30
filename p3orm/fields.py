@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import NoReturn, Optional, Type 
+from typing import NoReturn, Optional, Type
 
 from pypika import Field
 
