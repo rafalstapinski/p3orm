@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "p3orm"
-version = "0.10.2"
+version = "0.10.3"
 description = "Utilitarian Python ORM for Postgres/SQLite, backed by asyncpg/aiosqlite, Pydantic, and PyPika"
 authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
 keywords = ["postgres", "sqlite", "async", "orm"]
