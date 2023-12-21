@@ -1,25 +1,34 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import TYPE_CHECKING, Type, TypeVar
 
 from p3orm.table import Table
 
 T = TypeVar("T", bound=Table)
 
 
-class Driver(ABC):
-    ...
+class Driver:
+    tables: list[Type[T]]
 
-    @abstractmethod
-    async def execute_many(self):
-        ...
+    def __init__(self, tables: list[Type[T]]) -> None:
+        super().__init__()
+        self.tables = tables
+        for table in tables:
+            table._init_stuff(self)
 
-    @abstractmethod
-    async def execute_one(self):
-        ...
-
-    @abstractmethod
-    async def fetch_one(self):
-        ...
+    #
+    # @abstractmethod
+    # async def execute_many(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def execute_one(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def fetch_one(self):
+    #     ...
 
     #
     # @abstractmethod
