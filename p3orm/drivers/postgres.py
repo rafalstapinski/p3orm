@@ -4,12 +4,14 @@ import abc
 from typing import Any, Generic, Type, TypeVar
 
 import asyncpg
+import pypika
 from pypika.dialects import PostgreSQLQuery, PostgreSQLQueryBuilder
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Parameter
 
 from p3orm.drivers.base import Driver
 from p3orm.exceptions import P3ormException
+from p3orm.fields import PormField
 from p3orm.table import DB_GENERATED, Table
 from p3orm.utils import parameterize
 
@@ -156,13 +158,30 @@ class ConnectionExecutor(Executor, Generic[T]):
             for record in records
         ]
 
-    async def fetch_all(self, /, criterion: Criterion | None = None) -> list[T]:
+    async def fetch_all(
+        self,
+        /,
+        criterion: Criterion | None = None,
+        *,
+        order: pypika.Order | None = None,
+        by: pypika.Field | list[pypika.Field] | None = None,
+        limit: int | None = None,
+    ) -> list[T]:
         query = self.table.select()
 
         query_args = None
         if criterion:
             parameterized_criterion, query_args = parameterize(criterion)
             query = query.where(parameterized_criterion)
+
+        if by:
+            query = query.orderby(
+                *(by if isinstance(by, list) else [by]),
+                **({"order": order} if order else {}),
+            )
+
+        if limit is not None:
+            query = query.limit(limit)
 
         records = await self.execute(query, query_args)
 
@@ -203,19 +222,7 @@ class ConnectionExecutor(Executor, Generic[T]):
 
         return records[0]
 
-    async def insert_one(self, /, item: T) -> T:
-        columns, [values] = insert_vals(self.table, [item])
-
-        query_params = [Parameter(f"${i + 1}") for i in range(len(values))]
-
-        query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(self.table.__tablename__).columns(*columns)
-        query = query.insert(*query_params)
-        query = query.returning("*")
-
-        [inserted] = await self.execute(query, values)
-        return inserted
-
-    async def insert_many(self, /, items: list[T]) -> list[T]:
+    async def insert(self, /, items: list[T]) -> list[T]:
         columns, values = insert_vals(self.table, items)
         columns_count = len(columns)
 
@@ -246,3 +253,15 @@ class ConnectionExecutor(Executor, Generic[T]):
 
         [updated] = await self.execute(query, values)
         return updated
+
+    async def delete(self, /, items: list[T]) -> list[T]:
+        query = self.table.delete()
+
+        for pk in self.table.__memo__.pk:
+            query = query.where(pk._pypika_field.isin([getattr(item, pk._field_name) for item in items]))
+
+        query = query.returning("*")
+
+        deleted = await self.execute(query)
+
+        return deleted
