@@ -131,7 +131,11 @@ class ConnectionExecutor(Executor, Generic[T]):
     table: Type[T]
     driver: Postgres
 
-    async def execute(self, query: str | QueryBuilder, query_args: list[Any] | None = None) -> list[T]:
+    async def execute(
+        self,
+        query: str | QueryBuilder,
+        query_args: list[Any] | None = None,
+    ) -> list[T]:
         if isinstance(query, QueryBuilder):
             query = query.get_sql()
 
@@ -187,7 +191,11 @@ class ConnectionExecutor(Executor, Generic[T]):
 
         return records
 
-    async def fetch_one(self, /, criterion: Criterion | None = None) -> T:
+    async def fetch_one(
+        self,
+        /,
+        criterion: Criterion | None = None,
+    ) -> T:
         query: QueryBuilder = self.table.select()
 
         query_args = []
@@ -206,7 +214,11 @@ class ConnectionExecutor(Executor, Generic[T]):
 
         return records[0]
 
-    async def fetch_first(self, /, criterion: Criterion | None = None) -> T | None:
+    async def fetch_first(
+        self,
+        /,
+        criterion: Criterion | None = None,
+    ) -> T | None:
         query = self.table.select()
         query_args = None
         if criterion:
@@ -222,7 +234,11 @@ class ConnectionExecutor(Executor, Generic[T]):
 
         return records[0]
 
-    async def insert(self, /, items: list[T]) -> list[T]:
+    async def insert(
+        self,
+        /,
+        items: list[T],
+    ) -> list[T]:
         columns, values = insert_vals(self.table, items)
         columns_count = len(columns)
 
@@ -238,7 +254,11 @@ class ConnectionExecutor(Executor, Generic[T]):
 
         return inserted
 
-    async def update_one(self, /, item: T) -> T:
+    async def update_one(
+        self,
+        /,
+        item: T,
+    ) -> T:
         query = self.table.update()
 
         for pk in self.table.__memo__.pk:
@@ -254,7 +274,11 @@ class ConnectionExecutor(Executor, Generic[T]):
         [updated] = await self.execute(query, values)
         return updated
 
-    async def delete(self, /, items: list[T]) -> list[T]:
+    async def delete(
+        self,
+        /,
+        items: list[T],
+    ) -> list[T]:
         query = self.table.delete()
 
         for pk in self.table.__memo__.pk:
