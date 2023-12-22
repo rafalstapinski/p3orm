@@ -1,26 +1,71 @@
-from typing import Any, List, Optional, Sequence, Type, Union
+from __future__ import annotations
 
-from pypika.queries import QueryBuilder
+from typing import Type, TypeVar
 
-from p3orm.types import Model
+from p3orm.table import Table
+
+T = TypeVar("T", bound=Table)
 
 
-class BaseDriver:
-    async def fetch_one(
-        self,
-        cls: Type[Model],
-        query: Union[str, QueryBuilder],
-        query_args: Sequence[Any] = None,
-    ) -> Optional[Model]:
-        raise NotImplementedError
+class Driver:
+    tables: list[Type[T]]
 
-    async def fetch_many(
-        self,
-        cls: Type[Model],
-        query: Union[str, QueryBuilder],
-        query_args: Sequence[Any] = None,
-    ) -> List[Model]:
-        raise NotImplementedError
+    def __init__(self, tables: list[Type[T]]) -> None:
+        super().__init__()
+        self.tables = tables
+        for table in tables:
+            table._init_stuff(self)
 
-    async def disconnect(self) -> None:
-        raise NotImplementedError
+    #
+    # @abstractmethod
+    # async def execute_many(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def execute_one(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def fetch_one(self):
+    #     ...
+
+    #
+    # @abstractmethod
+    # async def fetch_first(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def fetch_many(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def insert_one(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def insert_many(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def update_one(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def update_many(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def delete_one(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def delete_many(self):
+    #     ...
+    #
+    # @abstractmethod
+    # async def fetch_related(self):
+    #     ...
+    #     """
+    #     for inserts and updates, use AliasedQuery with the .with to create a subquery that can be inserted into the parent quer to do prefetching.
+    #     pypika docs, tutorial -> with clause
+    #     """

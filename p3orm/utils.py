@@ -1,24 +1,15 @@
-from __future__ import annotations
+from types import NoneType, UnionType
+from typing import Any, Type, cast, get_args, get_origin
 
-import sqlite3
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
-
-if TYPE_CHECKING:
-    import asyncpg
-
+import asyncpg
+from pypika import Criterion, NullValue, Parameter
+from pypika.enums import Comparator
 from pypika.queries import QueryBuilder
-from pypika.terms import (
-    BasicCriterion,
-    Comparator,
-    ComplexCriterion,
-    ContainsCriterion,
-    Criterion,
-    NullValue,
-    Parameter,
-    RangeCriterion,
-)
+from pypika.terms import BasicCriterion, ComplexCriterion, ContainsCriterion, RangeCriterion, ValueWrapper
 
-from p3orm.exceptions import InvalidSQLiteVersion
+
+def is_optional(t: Type) -> bool:
+    return get_origin(t) == UnionType and NoneType in get_args(t)
 
 
 class PormComparator(Comparator):
@@ -26,30 +17,26 @@ class PormComparator(Comparator):
     in_ = " IN "
 
 
-def record_to_kwargs(record: asyncpg.Record) -> Dict[str, Any]:
-    return {k: v for k, v in record.items()}
-
-
-def with_returning(query: QueryBuilder, returning: Optional[str] = "*") -> str:
-    return f"{query.get_sql()} RETURNING {returning}"
-
-
 def _param(index: int) -> Parameter:
-    # if dialect() == Dialects.SQLLITE:
-    #     return Parameter("?")
-    # else:
-    #     return Parameter(f"${index}")
     return Parameter(f"${index}")
 
 
-def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int = 0) -> Tuple[Criterion, List[Any]]:
+def record_to_kwargs(record: asyncpg.Record) -> dict[str, Any]:
+    return {k: v for k, v in record.items()}
+
+
+def with_returning(query: QueryBuilder, returning: str = "*") -> str:
+    return f"{query.get_sql()} RETURNING {returning}"
+
+
+def _parameterize(criterion: Criterion, query_args: list[Any], param_index: int = 0) -> tuple[Criterion, list[Any]]:
     if isinstance(criterion, ComplexCriterion):
-        left, query_args = _parameterize(criterion.left, query_args, param_index)
-        right, query_args = _parameterize(criterion.right, query_args, param_index + len(query_args))
+        left, query_args = _parameterize(cast(Criterion, criterion.left), query_args, param_index)
+        right, query_args = _parameterize(cast(Criterion, criterion.right), query_args, param_index + len(query_args))
         return ComplexCriterion(criterion.comparator, left, right, criterion.alias), query_args
 
     elif isinstance(criterion, BasicCriterion):
-        query_args.append(criterion.right.value)
+        query_args.append(cast(ValueWrapper, criterion.right).value)
         param_index += 1
         return (
             BasicCriterion(
@@ -65,7 +52,7 @@ def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int 
         criterion_args = [i.value if not isinstance(i, NullValue) else None for i in criterion.container.values]
         query_args += criterion_args
         params = []
-        for i in range(len(criterion_args)):
+        for _ in range(len(criterion_args)):
             param_index += 1
             params.append(f"${param_index}")
         return (
@@ -90,20 +77,8 @@ def _parameterize(criterion: Criterion, query_args: List[Any], param_index: int 
     return criterion, query_args
 
 
-def paramaterize(
-    criterion: Criterion,
-    query_args: List[Any] = None,
-) -> Tuple[Criterion, List[Any]]:
-    if query_args == None:
+def parameterize[T](criterion: Criterion, query_args: list[T] | None = None) -> tuple[Criterion, list[T]]:
+    if query_args is None:
         query_args = []
 
     return _parameterize(criterion, query_args)
-
-
-def is_optional(_type: Type):
-    return get_origin(_type) is Union and type(None) in get_args(_type)
-
-
-def validate_sqlite_version():
-    if sqlite3.sqlite_version_info < (3, 35, 0):
-        raise InvalidSQLiteVersion("p3orm requires SQLite engine version 3.35 or higher")

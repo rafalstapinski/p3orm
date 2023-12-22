@@ -1,50 +1,10 @@
-class PormException(Exception):
+class P3ormException(Exception):
     ...
 
 
-class MultipleResultsReturned(PormException):
+class MissingTablename(P3ormException):
     ...
 
 
-class NoResultsReturned(PormException):
-    ...
-
-
-class MissingPrimaryKey(PormException):
-    ...
-
-
-class MultiplePrimaryKeys(PormException):
-    ...
-
-
-class MissingTablename(PormException):
-    ...
-
-
-class MissingRelationship(PormException):
-    ...
-
-
-class DatabaseException(PormException):
-    ...
-
-
-class InvalidRelationship(PormException):
-    ...
-
-
-class UnloadedRelationship(PormException):
-    ...
-
-
-class AlreadyConnected(PormException):
-    ...
-
-
-class NotConnected(PormException):
-    ...
-
-
-class InvalidSQLiteVersion(PormException):
+class MisingPrimaryKeyException(P3ormException):
     ...
