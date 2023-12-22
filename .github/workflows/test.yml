@@ -53,7 +53,7 @@ jobs:
       # - run: poetry run pylint p3orm/
 
       - name: ruff
-        run: poetry run ruff .
+        run: poetry run ruff p3orm/
 
       # check versions match
       - run: poetry run python scripts/assert_package_versions_match.py
