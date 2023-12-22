@@ -156,26 +156,44 @@ class ConnectionExecutor(Executor, Generic[T]):
             for record in records
         ]
 
-    async def fetch_one(self, /, criterion: Criterion) -> T:
-        parameterized_criterion, query_args = parameterize(criterion)
+    async def fetch_all(self, /, criterion: Criterion | None = None) -> list[T]:
+        query = self.table.select()
 
-        query: QueryBuilder = self.table.select().where(parameterized_criterion)
+        query_args = None
+        if criterion:
+            parameterized_criterion, query_args = parameterize(criterion)
+            query = query.where(parameterized_criterion)
+
+        records = await self.execute(query, query_args)
+
+        return records
+
+    async def fetch_one(self, /, criterion: Criterion | None = None) -> T:
+        query: QueryBuilder = self.table.select()
+
+        query_args = []
+        if criterion:
+            paramaterized_criterion, query_args = parameterize(criterion)
+            query = query.where(paramaterized_criterion)
+
         query = query.limit(2)
 
         records = await self.execute(query, query_args)
 
-        if len(records) == 0:
-            raise P3ormException(f"no records found for {self.table.__name__} with {criterion=}")
-
-        if len(records) > 1:
-            raise P3ormException(f"more than one record found for {self.table.__name__} with {criterion=}")
+        if len(records) != 1:
+            raise P3ormException(
+                f"expected one result in {self.table.__name__} where {criterion=}, found {len(records)}"
+            )
 
         return records[0]
 
-    async def fetch_first(self, /, criterion: Criterion) -> T | None:
-        parameterized_criterion, query_args = parameterize(criterion)
+    async def fetch_first(self, /, criterion: Criterion | None = None) -> T | None:
+        query = self.table.select()
+        query_args = None
+        if criterion:
+            parameterized_criterion, query_args = parameterize(criterion)
+            query = query.where(parameterized_criterion)
 
-        query: QueryBuilder = self.table.select().where(parameterized_criterion)
         query = query.limit(1)
 
         records = await self.execute(query, query_args)
@@ -186,15 +204,16 @@ class ConnectionExecutor(Executor, Generic[T]):
         return records[0]
 
     async def insert_one(self, /, item: T) -> T:
-        columns, values = insert_vals(self.table, [item])
-        query_params = [Parameter(f"${i + 1}") for i in range(len(values[0]))]
+        columns, [values] = insert_vals(self.table, [item])
+
+        query_params = [Parameter(f"${i + 1}") for i in range(len(values))]
 
         query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(self.table.__tablename__).columns(*columns)
         query = query.insert(*query_params)
         query = query.returning("*")
 
-        inserted = await self.execute(query, values)
-        return inserted[0]
+        [inserted] = await self.execute(query, values)
+        return inserted
 
     async def insert_many(self, /, items: list[T]) -> list[T]:
         columns, values = insert_vals(self.table, items)
@@ -213,25 +232,17 @@ class ConnectionExecutor(Executor, Generic[T]):
         return inserted
 
     async def update_one(self, /, item: T) -> T:
-        ...
+        query = self.table.update()
 
-    # async def fetch_related(self, /, items: list[T], relations: Sequence[Sequence[T]]) -> list[T]:
-    #     if len(items) == 0:
-    #         return items
-    #
-    #     for relationships in relations:
-    #         if not relationships:
-    #             continue
-    #
-    #         self_table = items[0].__memo__.table
-    #         relationship = cast(PormRelationship, relationships[0])
-    #         relationship_table = cast(Type[Table], relationship._data_type)
-    #         relationship_field_name = self_table.__memo__.relationships[relationship_table]
-    #
-    #         keys = [getattr(item, relationship.self_column) for item in items]
-    #
-    #         field = getattr()
-    #         parameterized_criterion, query_args = parameterize(relationship_table)
-    #
-    #
-    #     return []
+        for pk in self.table.__memo__.pk:
+            query = query.where(pk._pypika_field == getattr(item, pk._field_name))
+
+        columns, [values] = insert_vals(self.table, [item])
+
+        for i, column in enumerate(columns):
+            query = query.set(column, Parameter(f"${i + 1}"))
+
+        query = query.returning("*")
+
+        [updated] = await self.execute(query, values)
+        return updated

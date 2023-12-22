@@ -8,7 +8,7 @@ import attrs
 import pypika
 from pypika.dialects import PostgreSQLQueryBuilder
 
-from p3orm.exceptions import MissingTablename, P3ormException, SinglePrimaryKeyException
+from p3orm.exceptions import MisingPrimaryKeyException, MissingTablename, P3ormException
 from p3orm.fields import PormField, PormRelationship
 from p3orm.utils import is_optional
 
@@ -18,9 +18,10 @@ if TYPE_CHECKING:
 
 class TableMemo:
     table: Type[Table]
+    pk: list[PormField]
     fields: dict[str, PormField]
     columns: dict[str, PormField]
-    relationships: dict[PormRelationship, str]
+    relationships: dict[str, PormRelationship]
     factory: Type
     record_t_kwarg_map: dict[str, str]
     record_kwarg_map: dict[str, str]
@@ -71,7 +72,6 @@ class DB_GENERATED[T]:
 @typing.dataclass_transform()
 class TableMeta(type):
     def from_(cls: Type[Table]) -> PostgreSQLQueryBuilder:
-        print(f"{cls=} {type(cls)=}")
         return querybuilder().from_(cls.__tablename__)
 
     def select(cls: Type[Table]) -> PostgreSQLQueryBuilder:
@@ -114,7 +114,7 @@ class Table(metaclass=TableMeta):
                     ),
                 )
 
-        for relationship, field_name in memo.relationships.items():
+        for field_name, relationship in memo.relationships.items():
             setattr(
                 obj,
                 field_name,
@@ -136,6 +136,7 @@ class Table(metaclass=TableMeta):
         memo.columns = {}
         memo.record_t_kwarg_map = {}
         memo.record_kwarg_map = {}
+        memo.pk = []
 
         type_hints = typing.get_type_hints(cls)
 
@@ -159,12 +160,15 @@ class Table(metaclass=TableMeta):
                     memo.record_kwarg_map[field.column_name] = field_name
                     memo.record_t_kwarg_map[f"{cls.__tablename__}.{field.column_name}"] = field_name
 
+                    if field.pk:
+                        memo.pk.append(field)
+
                 elif isinstance(relationship := getattr(cls, field_name), PormRelationship):
                     relationship._data_type = type_hints[field_name]
-                    memo.relationships[relationship] = field_name
+                    memo.relationships[field_name] = relationship
 
-        if len([f for f in memo.fields.values() if f.pk]) != 1:
-            raise SinglePrimaryKeyException(f"{cls.__name__} must has 1 primary")
+        if len(memo.pk) == 0:
+            raise MisingPrimaryKeyException(f"{cls.__name__} must have at least 1 column to uniquely identify rows")
 
         # tack on the model factory
         factory_fields: dict[str, attrs.Attribute] = {}
@@ -181,7 +185,7 @@ class Table(metaclass=TableMeta):
 
             factory_fields[field_name] = attrs.field(**field_kwargs)
 
-        for relationship, field_name in memo.relationships.items():
+        for field_name, relationship in memo.relationships.items():
             factory_fields[field_name] = attrs.field(
                 type=relationship._data_type,
                 default=UNLOADED_RELATIONSIP[relationship._data_type](

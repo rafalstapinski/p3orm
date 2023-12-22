@@ -6,5 +6,5 @@ class MissingTablename(P3ormException):
     ...
 
 
-class SinglePrimaryKeyException(P3ormException):
+class MisingPrimaryKeyException(P3ormException):
     ...
