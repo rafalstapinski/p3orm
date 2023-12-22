@@ -20,6 +20,8 @@ jobs:
 
       # Install poetry
       - uses: abatilo/actions-poetry@v2.3.0
+        with:
+          poetry-version: '1.7.1'
 
       # Install deps
       - run: poetry install
