@@ -1,25 +1,19 @@
 from __future__ import annotations
 
 import abc
-from dataclasses import dataclass
 from typing import Any, Generic, Type, TypeVar
 
 import asyncpg
-from asyncpg import Connection, Pool
-from pypika.queries import Query, QueryBuilder
-from pypika.terms import ComplexCriterion, Criterion
+from pypika.dialects import PostgreSQLQuery, PostgreSQLQueryBuilder
+from pypika.queries import QueryBuilder
+from pypika.terms import Criterion, Parameter
 
 from p3orm.drivers.base import Driver
 from p3orm.exceptions import P3ormException
-from p3orm.table import Table
+from p3orm.table import DB_GENERATED, Table
 from p3orm.utils import parameterize
 
 T = TypeVar("T", bound=Table)
-
-
-class DriverMeta(type):
-    def __getitem__(cls, table: Type[Table]):
-        ...
 
 
 class Postgres(Driver):
@@ -107,8 +101,28 @@ class Executor(Generic[T], metaclass=abc.ABCMeta):
     async def execute(self, query: str | QueryBuilder, query_args: list[Any] | None = None) -> list[T]:
         ...
 
-    async def fetch_one(self, /, criterion: Criterion) -> T:
-        ...
+
+def insert_vals(table: Type[T], items: list[T]) -> tuple[list[str], list[list[Any]]]:
+    columns = []
+    values = [[] for _ in range(len(items))]
+
+    for field_name, field in table.__memo__.fields.items():
+        if field.db_gen:
+            continue
+
+        columns.append(field.column_name)
+
+        for i, item in enumerate(items):
+            field_value = getattr(item, field_name)
+
+            if field.db_gen:
+                if type(field_value) != DB_GENERATED:
+                    raise P3ormException(f"{field_name=} is db_gen but not DB_GENERATED")
+                continue
+
+            values[i].append(field_value)
+
+    return columns, values
 
 
 class ConnectionExecutor(Executor, Generic[T]):
@@ -124,13 +138,13 @@ class ConnectionExecutor(Executor, Generic[T]):
 
         records: list[asyncpg.Record]
 
+        print(f"\n\n{query=}\n\n")
+
         if connection := self.driver.connection:  # type: ignore
             records = await connection.fetch(query, *(query_args or []))
 
         elif self.driver.pool:
             async with self.driver.pool.acquire() as connection:
-                print(f"{connection=} {type(connection)=}")
-
                 connection: asyncpg.Connection
                 records = await connection.fetch(query, *(query_args or []))
 
@@ -157,3 +171,67 @@ class ConnectionExecutor(Executor, Generic[T]):
             raise P3ormException(f"more than one record found for {self.table.__name__} with {criterion=}")
 
         return records[0]
+
+    async def fetch_first(self, /, criterion: Criterion) -> T | None:
+        parameterized_criterion, query_args = parameterize(criterion)
+
+        query: QueryBuilder = self.table.select().where(parameterized_criterion)
+        query = query.limit(1)
+
+        records = await self.execute(query, query_args)
+
+        if len(records) == 0:
+            return None
+
+        return records[0]
+
+    async def insert_one(self, /, item: T) -> T:
+        columns, values = insert_vals(self.table, [item])
+        query_params = [Parameter(f"${i + 1}") for i in range(len(values[0]))]
+
+        query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(self.table.__tablename__).columns(*columns)
+        query = query.insert(*query_params)
+        query = query.returning("*")
+
+        inserted = await self.execute(query, values)
+        return inserted[0]
+
+    async def insert_many(self, /, items: list[T]) -> list[T]:
+        columns, values = insert_vals(self.table, items)
+        columns_count = len(columns)
+
+        query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(self.table.__tablename__).columns(*columns)
+        query_args: list[Any] = []
+        for page, args in enumerate(values):
+            query = query.insert(*[Parameter(f"${i + 1 + columns_count * page}") for i in range(columns_count)])
+            query_args += args
+
+        query = query.returning("*")
+
+        inserted = await self.execute(query, query_args)
+
+        return inserted
+
+    async def update_one(self, /, item: T) -> T:
+        ...
+
+    # async def fetch_related(self, /, items: list[T], relations: Sequence[Sequence[T]]) -> list[T]:
+    #     if len(items) == 0:
+    #         return items
+    #
+    #     for relationships in relations:
+    #         if not relationships:
+    #             continue
+    #
+    #         self_table = items[0].__memo__.table
+    #         relationship = cast(PormRelationship, relationships[0])
+    #         relationship_table = cast(Type[Table], relationship._data_type)
+    #         relationship_field_name = self_table.__memo__.relationships[relationship_table]
+    #
+    #         keys = [getattr(item, relationship.self_column) for item in items]
+    #
+    #         field = getattr()
+    #         parameterized_criterion, query_args = parameterize(relationship_table)
+    #
+    #
+    #     return []

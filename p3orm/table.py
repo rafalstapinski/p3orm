@@ -2,28 +2,25 @@ from __future__ import annotations
 
 import typing
 from dataclasses import dataclass
-from enum import Enum
-from typing import TYPE_CHECKING, Any, ClassVar, Self, Type
+from typing import TYPE_CHECKING, Any, ClassVar, Type
 
 import attrs
 import pypika
-from pypika import Criterion
-from pypika import Field as PyPikaField
 from pypika.dialects import PostgreSQLQueryBuilder
-from pypika.queries import QueryBuilder
 
 from p3orm.exceptions import MissingTablename, P3ormException, SinglePrimaryKeyException
 from p3orm.fields import PormField, PormRelationship
-from p3orm.utils import is_optional, parameterize
+from p3orm.utils import is_optional
 
 if TYPE_CHECKING:
     from p3orm.drivers.base import Driver
 
 
 class TableMemo:
+    table: Type[Table]
     fields: dict[str, PormField]
     columns: dict[str, PormField]
-    relationships: dict[str, PormRelationship]
+    relationships: dict[PormRelationship, str]
     factory: Type
     record_t_kwarg_map: dict[str, str]
     record_kwarg_map: dict[str, str]
@@ -44,10 +41,11 @@ class UNLOADED_RELATIONSIP[T]:
 
     def __repr__(self) -> str:
         name = self.name
-        if is_optional(self.data_type):
-            type = self.data_type
-        else:
-            type = self.data_type.__name__
+        # if is_optional(self.data_type):
+        #     type = self.data_type
+        # else:
+        #     type = self.data_type.__name__
+        type = self.data_type
 
         return f"<UNLOADED RELATIONSHIP {name=} {type=}>"
 
@@ -61,10 +59,11 @@ class DB_GENERATED[T]:
     def __repr__(self) -> str:
         name = self.name
         column = self.column
-        if is_optional(self.data_type):
-            type = self.data_type
-        else:
-            type = self.data_type.__name__
+        # if is_optional(self.data_type):
+        #     type = self.data_type
+        # else:
+        #     type = self.data_type.__name__
+        type = self.data_type
 
         return f"<DB WILL SET VALUE {name=} {column=} {type=}>"
 
@@ -115,7 +114,7 @@ class Table(metaclass=TableMeta):
                     ),
                 )
 
-        for field_name, relationship in memo.relationships.items():
+        for relationship, field_name in memo.relationships.items():
             setattr(
                 obj,
                 field_name,
@@ -130,12 +129,14 @@ class Table(metaclass=TableMeta):
     @classmethod
     def _init_stuff(cls, driver: Driver) -> TableMemo:
         memo = TableMemo()
+        memo.table = cls
         memo.driver = driver
         memo.fields = {}
         memo.relationships = {}
         memo.columns = {}
         memo.record_t_kwarg_map = {}
         memo.record_kwarg_map = {}
+
         type_hints = typing.get_type_hints(cls)
 
         # tack on fields and relationships
@@ -160,7 +161,7 @@ class Table(metaclass=TableMeta):
 
                 elif isinstance(relationship := getattr(cls, field_name), PormRelationship):
                     relationship._data_type = type_hints[field_name]
-                    memo.relationships[field_name] = relationship
+                    memo.relationships[relationship] = field_name
 
         if len([f for f in memo.fields.values() if f.pk]) != 1:
             raise SinglePrimaryKeyException(f"{cls.__name__} must has 1 primary")
@@ -180,7 +181,7 @@ class Table(metaclass=TableMeta):
 
             factory_fields[field_name] = attrs.field(**field_kwargs)
 
-        for field_name, relationship in memo.relationships.items():
+        for relationship, field_name in memo.relationships.items():
             factory_fields[field_name] = attrs.field(
                 type=relationship._data_type,
                 default=UNLOADED_RELATIONSIP[relationship._data_type](
