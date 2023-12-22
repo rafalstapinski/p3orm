@@ -59,12 +59,16 @@ known_local_folder = ["test"]
 
 [tool.ruff]
 line-length = 120
-exclude = [".venv"]
+exclude = [".venv", "__pycache__"]
 indent-width = 4
 target-version = "py312"
 fixable = ["ALL"]
 unfixable = []
 ignore = []
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = []
 
 [tool.ruff.format]
 quote-style = "double"

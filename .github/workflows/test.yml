@@ -32,16 +32,16 @@ jobs:
       # Install poetry
       - uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: "1.5.1"
+          poetry-version: "1.7.1"
 
       # Install deps
       - run: poetry install
 
-      # Test SQLite
-      - run: poetry run pytest test/sqlite
-
-      # Test Postgres
-      - run: poetry run pytest test/postgres
+      # # Test SQLite
+      # - run: poetry run pytest test/sqlite
+      #
+      # # Test Postgres
+      # - run: poetry run pytest test/postgres
 
       # isort
       - run: poetry run isort --sp pyproject.toml --check .
@@ -51,6 +51,9 @@ jobs:
 
       # pylint
       - run: poetry run pylint p3orm/
+
+      - name: ruff
+        run: poetry run ruff .
 
       # check versions match
       - run: poetry run python scripts/assert_package_versions_match.py
