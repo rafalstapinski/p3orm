@@ -1,5 +1,5 @@
 from types import NoneType, UnionType
-from typing import Any, Optional, Type, Union, cast, get_args, get_origin
+from typing import Any, Type, cast, get_args, get_origin
 
 import asyncpg
 from pypika import Criterion, NullValue, Parameter

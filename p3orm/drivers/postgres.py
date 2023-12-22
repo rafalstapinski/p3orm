@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from contextlib import contextmanager
 from typing import Any, DefaultDict, Generic, Sequence, Type, TypeVar, cast, get_args
 
 import asyncpg
@@ -13,7 +12,7 @@ from pypika.terms import Criterion, Parameter
 
 from p3orm.drivers.base import Driver
 from p3orm.exceptions import P3ormException
-from p3orm.fields import PormField, PormRelationship, RelationshipType
+from p3orm.fields import PormRelationship, RelationshipType
 from p3orm.table import DB_GENERATED, Table
 from p3orm.utils import parameterize
 

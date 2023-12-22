@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Type, TypeVar
+from typing import Type, TypeVar
 
 from p3orm.table import Table
 
