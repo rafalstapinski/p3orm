@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Generic, Type, TypeVar
+from collections import defaultdict
+from contextlib import contextmanager
+from typing import Any, DefaultDict, Generic, Sequence, Type, TypeVar, cast, get_args
 
 import asyncpg
 import pypika
@@ -11,11 +13,12 @@ from pypika.terms import Criterion, Parameter
 
 from p3orm.drivers.base import Driver
 from p3orm.exceptions import P3ormException
-from p3orm.fields import PormField
+from p3orm.fields import PormField, PormRelationship, RelationshipType
 from p3orm.table import DB_GENERATED, Table
 from p3orm.utils import parameterize
 
 T = TypeVar("T", bound=Table)
+U = TypeVar("U", bound=Table)
 
 
 class Postgres(Driver):
@@ -91,19 +94,6 @@ class Postgres(Driver):
         return ConnectionExecutor(table=table, driver=self)
 
 
-class Executor(Generic[T], metaclass=abc.ABCMeta):
-    table: Type[T]
-    driver: Postgres
-
-    def __init__(self, table: Type[T], driver: Postgres):
-        self.table = table
-        self.driver = driver
-
-    @abc.abstractmethod
-    async def execute(self, query: str | QueryBuilder, query_args: list[Any] | None = None) -> list[T]:
-        ...
-
-
 def insert_vals(table: Type[T], items: list[T]) -> tuple[list[str], list[list[Any]]]:
     columns = []
     values = [[] for _ in range(len(items))]
@@ -127,40 +117,17 @@ def insert_vals(table: Type[T], items: list[T]) -> tuple[list[str], list[list[An
     return columns, values
 
 
-class ConnectionExecutor(Executor, Generic[T]):
+class Executor(Generic[T], metaclass=abc.ABCMeta):
     table: Type[T]
     driver: Postgres
 
-    async def execute(
-        self,
-        query: str | QueryBuilder,
-        query_args: list[Any] | None = None,
-    ) -> list[T]:
-        if isinstance(query, QueryBuilder):
-            query = query.get_sql()
+    def __init__(self, table: Type[T], driver: Postgres):
+        self.table = table
+        self.driver = driver
 
-        if not self.driver.is_connected():
-            raise P3ormException("not connected")
-
-        records: list[asyncpg.Record]
-
-        print(f"\n\n{query=}\n\n")
-
-        if connection := self.driver.connection:  # type: ignore
-            records = await connection.fetch(query, *(query_args or []))
-
-        elif self.driver.pool:
-            async with self.driver.pool.acquire() as connection:
-                connection: asyncpg.Connection
-                records = await connection.fetch(query, *(query_args or []))
-
-        else:
-            raise P3ormException("not connected. driver has no pool or connection")
-
-        return [
-            self.table.__memo__.factory(**{self.table.__memo__.record_kwarg_map[k]: v for k, v in record.items()})
-            for record in records
-        ]
+    @abc.abstractmethod
+    async def execute(self, query: str | QueryBuilder, query_args: list[Any] | None = None) -> list[T]:
+        ...
 
     async def fetch_all(
         self,
@@ -289,3 +256,134 @@ class ConnectionExecutor(Executor, Generic[T]):
         deleted = await self.execute(query)
 
         return deleted
+
+    async def fetch_related(self, /, items: list[T], relations: Sequence[Sequence[U]]) -> list[T]:
+        if pool := self.driver.pool:
+            connection = await self.driver.pool.acquire()
+        elif not (connection := self.driver.connection):
+            raise P3ormException("not connected")
+
+        try:
+            for relationships in relations:
+                for relationships in relations:
+                    await _load_relationships(items, self.table, relationships, connection)  # type: ignore
+
+        finally:
+            if pool := self.driver.pool:
+                await pool.release(connection)
+
+        return items
+
+
+async def _load_relationships(
+    items: list[T],
+    item_table: Type[T],
+    relationships: Sequence[PormRelationship[U]],
+    connection: asyncpg.Connection,
+):
+    for relationship in relationships:
+        items = cast(list[T], await _load_relationships_for_items(items, item_table, relationship, connection))
+        item_table = relationship._data_type  # type: ignore
+
+
+async def _load_relationships_for_items(
+    items: list[T],
+    item_table: Type[T],
+    relationship: PormRelationship[U],
+    connection: asyncpg.Connection,
+) -> list[U]:
+    foreign_table = cast(
+        Type[U],
+        relationship._data_type
+        if relationship.relationship_type == RelationshipType.foreign_key
+        else get_args(relationship._data_type)[0],
+    )
+
+    print(f"\n\n\n")
+    print(f"{item_table=}")
+    print(f"{item_table.__memo__.columns}")
+
+    self_field = item_table.__memo__.columns[relationship.self_column]  # "team_id"
+    self_keys = [getattr(item, self_field._field_name) for item in items]  # [i.team_id for i in items]
+
+    parameterized_criterion, query_args = parameterize(pypika.Field(relationship.foreign_column).isin(self_keys))
+    query: PostgreSQLQueryBuilder = foreign_table.select().distinct().where(parameterized_criterion)
+
+    records = await connection.fetch(query.get_sql(), *query_args or [])
+    related_items: list[U] = []
+
+    # TODO: set related relationship to item on related items
+    if relationship.relationship_type == RelationshipType.foreign_key:
+        related_item_map: dict[Any, U] = {
+            record[relationship.foreign_column]: foreign_table.__memo__.factory(
+                **{foreign_table.__memo__.record_kwarg_map[k]: v for k, v in record.items()}
+            )
+            for record in records
+        }
+
+        related_items = list(related_item_map.values())
+
+        for item in items:
+            setattr(
+                item,
+                relationship._field_name,
+                related_item_map.get(getattr(item, self_field._field_name), None),
+            )
+
+    else:
+        related_items_map: DefaultDict[Any, list[U]] = defaultdict(list)
+        [
+            related_items_map[record.get(relationship.foreign_column)].append(
+                foreign_table.__memo__.factory(
+                    **{foreign_table.__memo__.record_kwarg_map[k]: v for k, v in record.items()}
+                )
+            )
+            for record in records
+        ]
+
+        for item in items:
+            setattr(
+                item,
+                relationship._field_name,
+                related_items_map.get(getattr(item, self_field._field_name), []),
+            )
+
+        related_items = [ri for ris in related_items_map.values() for ri in ris]
+
+    return related_items
+
+
+class ConnectionExecutor(Executor, Generic[T]):
+    table: Type[T]
+    driver: Postgres
+
+    async def execute(
+        self,
+        query: str | QueryBuilder,
+        query_args: list[Any] | None = None,
+    ) -> list[T]:
+        if isinstance(query, QueryBuilder):
+            query = query.get_sql()
+
+        if not self.driver.is_connected():
+            raise P3ormException("not connected")
+
+        records: list[asyncpg.Record]
+
+        print(f"\n\n{query=}\n\n")
+
+        if connection := self.driver.connection:  # type: ignore
+            records = await connection.fetch(query, *(query_args or []))
+
+        elif self.driver.pool:
+            async with self.driver.pool.acquire() as connection:
+                connection: asyncpg.Connection
+                records = await connection.fetch(query, *(query_args or []))
+
+        else:
+            raise P3ormException("not connected. driver has no pool or connection")
+
+        return [
+            self.table.__memo__.factory(**{self.table.__memo__.record_kwarg_map[k]: v for k, v in record.items()})
+            for record in records
+        ]

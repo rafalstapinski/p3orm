@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import typing
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Type
+from typing import TYPE_CHECKING, Any, ClassVar, Type, get_args
 
 import attrs
 import pypika
 from pypika.dialects import PostgreSQLQueryBuilder
 
 from p3orm.exceptions import MisingPrimaryKeyException, MissingTablename, P3ormException
-from p3orm.fields import PormField, PormRelationship
+from p3orm.fields import PormField, PormRelationship, RelationshipType
 from p3orm.utils import is_optional
 
 if TYPE_CHECKING:
@@ -164,7 +164,12 @@ class Table(metaclass=TableMeta):
                         memo.pk.append(field)
 
                 elif isinstance(relationship := getattr(cls, field_name), PormRelationship):
-                    relationship._data_type = type_hints[field_name]
+                    if relationship.relationship_type == RelationshipType.foreign_key:
+                        relationship._data_type = type_hints[field_name]
+                    else:
+                        relationship._data_type = get_args(type_hints[field_name])[0]
+
+                    relationship._field_name = field_name
                     memo.relationships[field_name] = relationship
 
         if len(memo.pk) == 0:
