@@ -299,12 +299,8 @@ async def _load_relationships_for_items(
         else get_args(relationship._data_type)[0],
     )
 
-    print(f"\n\n\n")
-    print(f"{item_table=}")
-    print(f"{item_table.__memo__.columns}")
-
-    self_field = item_table.__memo__.columns[relationship.self_column]  # "team_id"
-    self_keys = [getattr(item, self_field._field_name) for item in items]  # [i.team_id for i in items]
+    self_field = item_table.__memo__.columns[relationship.self_column]
+    self_keys = [getattr(item, self_field._field_name) for item in items]
 
     parameterized_criterion, query_args = parameterize(pypika.Field(relationship.foreign_column).isin(self_keys))
     query: PostgreSQLQueryBuilder = foreign_table.select().distinct().where(parameterized_criterion)
@@ -369,8 +365,6 @@ class ConnectionExecutor(Executor, Generic[T]):
             raise P3ormException("not connected")
 
         records: list[asyncpg.Record]
-
-        print(f"\n\n{query=}\n\n")
 
         if connection := self.driver.connection:  # type: ignore
             records = await connection.fetch(query, *(query_args or []))
