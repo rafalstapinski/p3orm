@@ -74,7 +74,7 @@ unfixable = []
 
 [tool.ruff.format]
 quote-style = "double"
-indend-style = "space"
+indent-style = "space"
 line-ending = "auto"
 skip-magic-trailing-comma = false
 
