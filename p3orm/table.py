@@ -22,7 +22,7 @@ class TableMemo:
     fields: dict[str, PormField]
     columns: dict[str, PormField]
     relationships: dict[str, PormRelationship]
-    factory: Type
+    factory: Type[Any]
     record_t_kwarg_map: dict[str, str]
     record_kwarg_map: dict[str, str]
     driver: Driver
@@ -31,7 +31,7 @@ class TableMemo:
 TABLES: dict[Type[Table], TableMemo] = {}
 
 
-def querybuilder():
+def querybuilder() -> PostgreSQLQueryBuilder:
     return PostgreSQLQueryBuilder()
 
 

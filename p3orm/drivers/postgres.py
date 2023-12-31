@@ -34,7 +34,7 @@ class Postgres(Driver):
         host: str | None = None,
         port: int | None = None,
         **asyncpg_kwargs: dict[Any, Any],
-    ):
+    ) -> None:
         if self.is_connected():
             raise P3ormException("already connected")
 
@@ -59,7 +59,7 @@ class Postgres(Driver):
         host: str | None = None,
         port: int | None = None,
         **asyncpg_kwargs: dict[Any, Any],
-    ):
+    ) -> None:
         if self.is_connected():
             raise P3ormException("already connected")
 
@@ -74,8 +74,17 @@ class Postgres(Driver):
             **asyncpg_kwargs,  # type: ignore
         )
 
-    async def disconnect(self):
-        ...
+    async def disconnect(self) -> None:
+        if not self.is_connected():
+            raise P3ormException("not connected")
+
+        if self.connection:
+            await self.connection.close()
+            self.connection = None
+
+        if self.pool:
+            await self.pool.close()
+            self.pool = None
 
     def is_connected(self) -> bool:
         if self.connection and not self.connection.is_closed():
@@ -95,7 +104,7 @@ class Postgres(Driver):
 
 def insert_vals(table: Type[T], items: list[T]) -> tuple[list[str], list[list[Any]]]:
     columns = []
-    values = [[] for _ in range(len(items))]
+    values: list[list[Any]] = [[] for _ in range(len(items))]
 
     for field_name, field in table.__memo__.fields.items():
         if field.db_gen:
@@ -164,7 +173,7 @@ class Executor(Generic[T], metaclass=abc.ABCMeta):
     ) -> T:
         query: QueryBuilder = self.table.select()
 
-        query_args = []
+        query_args: list[Any] = []
         if criterion:
             paramaterized_criterion, query_args = parameterize(criterion)
             query = query.where(paramaterized_criterion)
@@ -279,7 +288,7 @@ async def _load_relationships(
     item_table: Type[T],
     relationships: Sequence[PormRelationship[U]],
     connection: asyncpg.Connection,
-):
+) -> None:
     for relationship in relationships:
         items = cast(list[T], await _load_relationships_for_items(items, item_table, relationship, connection))
         item_table = relationship._data_type  # type: ignore
@@ -301,7 +310,7 @@ async def _load_relationships_for_items(
     self_field = item_table.__memo__.columns[relationship.self_column]
     self_keys = [getattr(item, self_field._field_name) for item in items]
 
-    parameterized_criterion, query_args = parameterize(pypika.Field(relationship.foreign_column).isin(self_keys))
+    parameterized_criterion, query_args = parameterize(pypika.terms.Field(relationship.foreign_column).isin(self_keys))
     query: PostgreSQLQueryBuilder = foreign_table.select().distinct().where(parameterized_criterion)
 
     records = await connection.fetch(query.get_sql(), *query_args or [])

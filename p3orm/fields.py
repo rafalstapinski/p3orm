@@ -28,8 +28,8 @@ class PormField:
     column_name: str
 
     _field_name: str
-    _data_type: Type
-    _pypika_field: pypika.Field
+    _data_type: Type[Any]
+    _pypika_field: pypika.terms.Field
 
     def __init__(self, pk: bool, db_gen: bool, db_default: bool, column_name: str | None):
         self.pk = pk
