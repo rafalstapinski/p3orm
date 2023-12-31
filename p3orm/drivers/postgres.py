@@ -101,6 +101,61 @@ class Postgres(Driver):
 
         return ConnectionExecutor(table=table, driver=self)
 
+    async def execute(self, table: Type[T], query: str | QueryBuilder, query_args: list[Any] | None = None) -> list[T]:
+        if isinstance(query, QueryBuilder):
+            query = query.get_sql()
+
+        if not self.is_connected():
+            raise P3ormException("not connected")
+
+        records: list[asyncpg.Record]
+
+        if self.connection:
+            records = await self.connection.fetch(query, *(query_args or []))
+
+        elif self.pool:
+            async with self.pool.acquire() as connection:
+                connection: asyncpg.Connection
+                records = await connection.fetch(query, *(query_args or []))
+
+        else:
+            raise P3ormException("not connected. driver has no pool or connection")
+
+        return [
+            table.__memo__.factory(**{table.__memo__.record_kwarg_map[k]: v for k, v in record.items()})
+            for record in records
+        ]
+
+    async def fetch_all(
+        self,
+        /,
+        table: Type[T],
+        criterion: Criterion | None = None,
+        *,
+        order: pypika.Order | None = None,
+        by: pypika.Field | list[pypika.Field] | None = None,
+        limit: int | None = None,
+    ) -> list[T]:
+        query = table.select()
+
+        query_args = None
+        if criterion:
+            parameterized_criterion, query_args = parameterize(criterion)
+            query = query.where(parameterized_criterion)
+
+        if by:
+            query = query.orderby(
+                *(by if isinstance(by, list) else [by]),
+                **({"order": order} if order else {}),
+            )
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        records = await self.execute(query, query_args)
+
+        return records
+
 
 def insert_vals(table: Type[T], items: list[T]) -> tuple[list[str], list[list[Any]]]:
     columns = []
