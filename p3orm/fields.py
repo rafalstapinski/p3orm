@@ -1,24 +1,17 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Type
+from typing import TYPE_CHECKING, Any, Generic, Type, TypeVar
 
-import pypika
+from pypika.terms import Field as PyPikaField
 
 from p3orm.exceptions import P3ormException
 
-# from p3orm.table import Table
-#
-# T = TypeVar("T", bound=Table)
+if TYPE_CHECKING:
+    from p3orm.table import Table
 
 
-#
-class FieldMeta(type):
-    ...
-
-
-#     def __getattribute__(cls: Type[PormField], __name: str) -> Any:
-#         return getattr(cls._pypika_field, __name)
+T = TypeVar("T", bound="Table")
 
 
 class PormField:
@@ -29,7 +22,7 @@ class PormField:
 
     _field_name: str
     _data_type: Type[Any]
-    _pypika_field: pypika.terms.Field
+    _pypika_field: PyPikaField
 
     def __init__(self, pk: bool, db_gen: bool, db_default: bool, column_name: str | None):
         self.pk = pk
@@ -39,26 +32,13 @@ class PormField:
             self.column_name = column_name
 
 
-#
-# class PK(PormField):
-#     pk = True
-#
-#
-# class DBGen(PormField):
-#     db_gen = True
-#
-#
-# class DBDefault(PormField):
-#     db_default = True
-#
-
 
 class RelationshipType(str, Enum):
     foreign_key = "foreign_key"
     reverse = "reverse"
 
 
-class PormRelationship[T]:
+class PormRelationship(Generic[T]):
     self_column: str
     foreign_column: str
     relationship_type: RelationshipType
@@ -70,6 +50,7 @@ class PormRelationship[T]:
         self.self_column = self_column
         self.foreign_column = foreign_column
         self.relationship_type = relationship_type
+    
 
 
 def Column(pk: bool = False, db_gen: bool = False, has_default: bool = False, column_name: str | None = None) -> Any:
@@ -84,7 +65,7 @@ def Column(pk: bool = False, db_gen: bool = False, has_default: bool = False, co
     )
 
 
-def f(x: Any) -> pypika.Field:
+def f(x: Any) -> PyPikaField:
     if not isinstance(x, PormField):
         raise P3ormException(f"Expected PormField, got {type(x)}")
     return x._pypika_field

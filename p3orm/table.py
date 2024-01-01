@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import typing
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Type, get_args
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Type, TypeVar, get_args
 
 import attrs
-import pypika
 from pypika.dialects import PostgreSQLQueryBuilder
+from pypika.terms import Field as PyPikaField
+from pypika.queries import Table as PyPikaTable
 
 from p3orm.exceptions import MisingPrimaryKeyException, MissingTablename, P3ormException
 from p3orm.fields import PormField, PormRelationship, RelationshipType
@@ -15,13 +16,15 @@ from p3orm.utils import is_optional
 if TYPE_CHECKING:
     from p3orm.drivers.base import Driver
 
+T = TypeVar("T", bound="Table")
+
 
 class TableMemo:
     table: Type[Table]
     pk: list[PormField]
     fields: dict[str, PormField]
     columns: dict[str, PormField]
-    relationships: dict[str, PormRelationship]
+    relationships: dict[str, PormRelationship[Any]]
     factory: Type[Any]
     record_t_kwarg_map: dict[str, str]
     record_kwarg_map: dict[str, str]
@@ -36,23 +39,19 @@ def querybuilder() -> PostgreSQLQueryBuilder:
 
 
 @dataclass
-class UNLOADED_RELATIONSIP[T]:
+class UNLOADED_RELATIONSHIP(Generic[T]):
     name: str
     data_type: Type[T]
 
     def __repr__(self) -> str:
         name = self.name
-        # if is_optional(self.data_type):
-        #     type = self.data_type
-        # else:
-        #     type = self.data_type.__name__
         type = self.data_type
 
         return f"<UNLOADED RELATIONSHIP {name=} {type=}>"
 
 
 @dataclass
-class DB_GENERATED[T]:
+class DB_GENERATED(Generic[T]):
     name: str
     column: str
     data_type: Type[T]
@@ -60,10 +59,6 @@ class DB_GENERATED[T]:
     def __repr__(self) -> str:
         name = self.name
         column = self.column
-        # if is_optional(self.data_type):
-        #     type = self.data_type
-        # else:
-        #     type = self.data_type.__name__
         type = self.data_type
 
         return f"<DB WILL SET VALUE {name=} {column=} {type=}>"
@@ -71,16 +66,16 @@ class DB_GENERATED[T]:
 
 @typing.dataclass_transform()
 class TableMeta(type):
-    def from_(cls: Type[Table]) -> PostgreSQLQueryBuilder:
+    def from_(cls: Type[Table]) -> PostgreSQLQueryBuilder:  # type: ignore
         return querybuilder().from_(cls.__tablename__)
 
-    def select(cls: Type[Table]) -> PostgreSQLQueryBuilder:
+    def select(cls: Type[Table]) -> PostgreSQLQueryBuilder:  # type: ignore
         return cls.from_().select("*")
 
-    def delete(cls: Type[Table]) -> PostgreSQLQueryBuilder:
+    def delete(cls: Type[Table]) -> PostgreSQLQueryBuilder:  # type: ignore
         return querybuilder().delete().from_(cls.__tablename__)
 
-    def update(cls: Type[Table]) -> PostgreSQLQueryBuilder:
+    def update(cls: Type[Table]) -> PostgreSQLQueryBuilder:  # type: ignore
         return querybuilder().update(cls.__tablename__)
 
 
@@ -97,7 +92,7 @@ class Table(metaclass=TableMeta):
     #     query: QueryBuilder = cls.select().where(parameterized_criterion)
     #     query = query.limit(2)
     #
-    def __new__(cls, /, **create_fields: dict[str, Any]):
+    def __new__(cls, /, **create_fields: dict[str, Any]):  # type: ignore
         if not (hasattr(cls, "__memo__") and (memo := cls.__memo__)):
             raise P3ormException(f"table {cls} not initalized")
 
@@ -118,7 +113,7 @@ class Table(metaclass=TableMeta):
             setattr(
                 obj,
                 field_name,
-                UNLOADED_RELATIONSIP[relationship._data_type](
+                UNLOADED_RELATIONSHIP[relationship._data_type](
                     name=field_name,
                     data_type=relationship._data_type,
                 ),
@@ -150,9 +145,9 @@ class Table(metaclass=TableMeta):
                     if not hasattr(field, "column_name"):
                         field.column_name = field_name
 
-                    field._pypika_field = pypika.Field(
+                    field._pypika_field = PyPikaField(
                         name=field.column_name,
-                        table=pypika.Table(cls.__tablename__),
+                        table=PyPikaTable(cls.__tablename__),
                     )
 
                     memo.fields[field_name] = field
@@ -193,7 +188,7 @@ class Table(metaclass=TableMeta):
         for field_name, relationship in memo.relationships.items():
             factory_fields[field_name] = attrs.field(
                 type=relationship._data_type,
-                default=UNLOADED_RELATIONSIP[relationship._data_type](
+                default=UNLOADED_RELATIONSHIP[relationship._data_type](
                     name=field_name, data_type=relationship._data_type
                 ),
             )
@@ -207,7 +202,6 @@ class Table(metaclass=TableMeta):
 
         TABLES[cls] = memo
         cls.__memo__ = memo
-        print(f"SETTING {cls=} {cls.__memo__=}")
         return memo
 
     def __init_subclass__(cls) -> None:
