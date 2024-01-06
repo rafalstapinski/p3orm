@@ -2,19 +2,18 @@ from __future__ import annotations
 
 import typing
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Type, TypeVar, get_args
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generator, Generic, Type, TypeVar, get_args
 
 import attrs
 from pypika.dialects import PostgreSQLQueryBuilder
 from pypika.terms import Field as PyPikaField
-from pypika.queries import Table as PyPikaTable
 
 from p3orm.exceptions import MisingPrimaryKeyException, MissingTablename, P3ormException
 from p3orm.fields import PormField, PormRelationship, RelationshipType
 from p3orm.utils import is_optional
 
 if TYPE_CHECKING:
-    from p3orm.drivers.base import Driver
+    from p3orm import Driver
 
 T = TypeVar("T", bound="Table")
 
@@ -122,6 +121,15 @@ class Table(metaclass=TableMeta):
         return obj
 
     @classmethod
+    def __validate(cls, v: Table | Any, _) -> Table:
+        assert cls.__name__ == v.__class__.__name__, f"must be a valid {cls.__name__}"
+        return v
+
+    @classmethod
+    def __get_validators__(cls) -> Generator[Callable, None, None]:
+        yield cls.__validate
+
+    @classmethod
     def _init_stuff(cls, driver: Driver) -> TableMemo:
         memo = TableMemo()
         memo.table = cls
@@ -147,7 +155,7 @@ class Table(metaclass=TableMeta):
 
                     field._pypika_field = PyPikaField(
                         name=field.column_name,
-                        table=PyPikaTable(cls.__tablename__),
+                        # table=PyPikaTable(cls.__tablename__),
                     )
 
                     memo.fields[field_name] = field

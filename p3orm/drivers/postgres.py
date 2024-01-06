@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import abc
 from collections import defaultdict
-from typing import Any, DefaultDict, Generic, Sequence, Type, TypeVar, cast, get_args
+from types import TracebackType
+from typing import Any, DefaultDict, Self, Sequence, Type, TypeVar, cast, get_args
 
 import asyncpg
 from pypika.dialects import PostgreSQLQuery, PostgreSQLQueryBuilder
@@ -15,14 +15,210 @@ from pypika.terms import Parameter
 from p3orm.drivers.base import Driver
 from p3orm.exceptions import P3ormException
 from p3orm.fields import PormRelationship, RelationshipType
-from p3orm.table import DB_GENERATED, Table
+from p3orm.table import DB_GENERATED
 from p3orm.utils import parameterize
 
-T = TypeVar("T", bound=Table)
-U = TypeVar("U", bound=Table)
+T = TypeVar("T")
+U = TypeVar("U")
 
 
-class Postgres(Driver):
+class Executor:
+    connection: asyncpg.Connection | None = None
+    pool: asyncpg.Pool | None = None
+
+    def is_connected(self) -> bool:
+        raise NotImplementedError
+
+    async def execute(self, table: Type[T], query: str | QueryBuilder, query_args: list[Any] | None = None) -> list[T]:
+        if isinstance(query, QueryBuilder):
+            query = query.get_sql()
+
+        if not self.is_connected():
+            raise P3ormException("not connected")
+
+        records: list[asyncpg.Record]
+
+        if self.connection:
+            records = await self.connection.fetch(query, *(query_args or []))
+
+        elif self.pool:
+            async with self.pool.acquire() as connection:
+                records = await connection.fetch(query, *(query_args or []))
+
+        else:
+            raise P3ormException("not connected. driver has no pool or connection")
+
+        return [
+            table.__memo__.factory(**{table.__memo__.record_kwarg_map[k]: v for k, v in record.items()})
+            for record in records
+        ]
+
+    async def fetch_all(
+        self,
+        /,
+        table: Type[T],
+        criterion: Criterion | None = None,
+        *,
+        order: Order | None = None,
+        by: PyPikaField | list[PyPikaField] | None = None,
+        limit: int | None = None,
+    ) -> list[T]:
+        if criterion is not None and not isinstance(criterion, Criterion):
+            raise P3ormException(f"{criterion=} must be instance of Criterion. did you wrap the field with `f()`?")
+
+        query = table.select()
+
+        query_args = None
+        if criterion:
+            parameterized_criterion, query_args = parameterize(criterion)
+            query = query.where(parameterized_criterion)
+
+        if by:
+            query = query.orderby(
+                *(by if isinstance(by, list) else [by]),
+                **({"order": order} if order else {}),
+            )
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        records = await self.execute(table, query, query_args)
+
+        return records
+
+    async def fetch_one(
+        self,
+        /,
+        table: Type[T],
+        criterion: Criterion | None = None,
+    ) -> T:
+        query: QueryBuilder = table.select()
+
+        query_args: list[Any] = []
+        if criterion:
+            paramaterized_criterion, query_args = parameterize(criterion)
+            query = query.where(paramaterized_criterion)
+
+        query = query.limit(2)
+
+        records = await self.execute(table, query, query_args)
+
+        if len(records) != 1:
+            raise P3ormException(f"expected one result in {table.__name__} where {criterion=}, found {len(records)}")
+
+        return records[0]
+
+    async def fetch_first(
+        self,
+        /,
+        table: Type[T],
+        criterion: Criterion | None = None,
+    ) -> T | None:
+        query = table.select()
+        query_args = None
+        if criterion:
+            parameterized_criterion, query_args = parameterize(criterion)
+            query = query.where(parameterized_criterion)
+
+        query = query.limit(1)
+
+        records = await self.execute(table, query, query_args)
+
+        if len(records) == 0:
+            return None
+
+        return records[0]
+
+    async def insert_one(self, /, table: Type[T], item: T) -> T:
+        columns, [values] = _insert_vals(table, [item])
+
+        query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(table.__tablename__).columns(*columns)
+        query = query.insert(*[Parameter(f"${i + 1}") for i in range(len(columns))])
+        query = query.returning("*")
+
+        [inserted] = await self.execute(table, query, values)
+
+        return inserted
+
+    async def insert_many(
+        self,
+        /,
+        table: Type[T],
+        items: list[T],
+    ) -> list[T]:
+        columns, values = _insert_vals(table, items)
+        columns_count = len(columns)
+
+        query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(table.__tablename__).columns(*columns)
+        query_args: list[Any] = []
+        for page, args in enumerate(values):
+            query = query.insert(*[Parameter(f"${i + 1 + columns_count * page}") for i in range(columns_count)])
+            query_args += args
+
+        query = query.returning("*")
+
+        inserted = await self.execute(table, query, query_args)
+
+        return inserted
+
+    async def update_one(
+        self,
+        /,
+        table: Type[T],
+        item: T,
+    ) -> T:
+        query = table.update()
+
+        for pk in table.__memo__.pk:
+            query = query.where(pk._pypika_field == getattr(item, pk._field_name))
+
+        columns, [values] = _insert_vals(table, [item])
+
+        for i, column in enumerate(columns):
+            query = query.set(column, Parameter(f"${i + 1}"))
+
+        query = query.returning("*")
+
+        [updated] = await self.execute(table, query, values)
+        return updated
+
+    async def delete(
+        self,
+        /,
+        table: Type[T],
+        items: list[T],
+    ) -> list[T]:
+        query = table.delete()
+
+        for pk in table.__memo__.pk:
+            query = query.where(pk._pypika_field.isin([getattr(item, pk._field_name) for item in items]))
+
+        query = query.returning("*")
+
+        deleted = await self.execute(table, query)
+
+        return deleted
+
+    async def fetch_related(self, /, table: Type[T], items: list[T], relations: Sequence[Sequence[U]]) -> list[T]:
+        if pool := self.pool:
+            connection = await self.pool.acquire()
+
+        elif not (connection := self.connection):
+            raise P3ormException("not connected")
+
+        try:
+            for relationships in relations:
+                for relationships in relations:
+                    await _load_relationships(table, items, relationships, connection)  # type: ignore
+
+        finally:
+            if pool := self.pool:
+                await pool.release(connection)
+
+        return items
+
+
+class Postgres(Driver, Executor):
     connection: asyncpg.Connection | None = None
     pool: asyncpg.Pool | None = None
 
@@ -97,196 +293,47 @@ class Postgres(Driver):
 
         return False
 
-    def __getitem__(self, table: Type[T]) -> ConnectionExecutor[T]:
-        if not issubclass(table, Table):
-            raise P3ormException(f"{table=} must be a <p3orm.Table>")
+    def transaction(self) -> TransactionExecutor:
+        return TransactionExecutor(self)
 
-        return ConnectionExecutor(table=table, driver=self)
 
-    async def execute(self, table: Type[T], query: str | QueryBuilder, query_args: list[Any] | None = None) -> list[T]:
-        if isinstance(query, QueryBuilder):
-            query = query.get_sql()
+class TransactionExecutor(Executor):
+    driver: Postgres
+    connection: asyncpg.Connection
+    transaction: asyncpg.connection.transaction.Transaction
 
-        if not self.is_connected():
-            raise P3ormException("not connected")
+    def __init__(self, driver: Postgres):
+        self.driver = driver
 
-        records: list[asyncpg.Record]
-
-        if self.connection:
-            records = await self.connection.fetch(query, *(query_args or []))
-
-        elif self.pool:
-            async with self.pool.acquire() as connection:
-                records = await connection.fetch(query, *(query_args or []))
-
+    async def __aenter__(self) -> Self:
+        if self.driver.connection:
+            self.connection = self.driver.connection
+        elif self.driver.pool:
+            self.connection = await self.driver.pool.acquire()
         else:
-            raise P3ormException("not connected. driver has no pool or connection")
-
-        return [
-            table.__memo__.factory(**{table.__memo__.record_kwarg_map[k]: v for k, v in record.items()})
-            for record in records
-        ]
-
-    async def fetch_all(
-        self,
-        /,
-        table: Type[T],
-        criterion: Criterion | None = None,
-        *,
-        order: Order | None = None,
-        by: PyPikaField | list[PyPikaField] | None = None,
-        limit: int | None = None,
-    ) -> list[T]:
-        query = table.select()
-
-        query_args = None
-        if criterion:
-            parameterized_criterion, query_args = parameterize(criterion)
-            query = query.where(parameterized_criterion)
-
-        if by:
-            query = query.orderby(
-                *(by if isinstance(by, list) else [by]),
-                **({"order": order} if order else {}),
-            )
-
-        if limit is not None:
-            query = query.limit(limit)
-
-        records = await self.execute(table, query, query_args)
-
-        return records
-
-    async def fetch_one(
-        self,
-        /,
-        table: Type[T],
-        criterion: Criterion | None = None,
-    ) -> T:
-        query: QueryBuilder = table.select()
-
-        query_args: list[Any] = []
-        if criterion:
-            paramaterized_criterion, query_args = parameterize(criterion)
-            query = query.where(paramaterized_criterion)
-
-        query = query.limit(2)
-
-        records = await self.execute(table, query, query_args)
-
-        if len(records) != 1:
-            raise P3ormException(f"expected one result in {table.__name__} where {criterion=}, found {len(records)}")
-
-        return records[0]
-
-    async def fetch_first(
-        self,
-        /,
-        table: Type[T],
-        criterion: Criterion | None = None,
-    ) -> T | None:
-        query = table.select()
-        query_args = None
-        if criterion:
-            parameterized_criterion, query_args = parameterize(criterion)
-            query = query.where(parameterized_criterion)
-
-        query = query.limit(1)
-
-        records = await self.execute(table, query, query_args)
-
-        if len(records) == 0:
-            return None
-
-        return records[0]
-
-    async def insert_one(self, /, table: Type[T], item: T) -> T:
-        columns, [values] = _insert_vals(table, [item])
-
-        query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(table.__tablename__).columns(*columns)
-        query = query.insert(*[Parameter(f"${i + 1}") for i in range(len(columns))])
-        query = query.returning("*")
-
-        [inserted] = await self.execute(table, query, values[0])
-
-        return inserted
-
-    async def insert_many(
-        self,
-        /,
-        table: Type[T],
-        items: list[T],
-    ) -> list[T]:
-        columns, values = _insert_vals(table, items)
-        columns_count = len(columns)
-
-        query: PostgreSQLQueryBuilder = PostgreSQLQuery.into(table.__tablename__).columns(*columns)
-        query_args: list[Any] = []
-        for page, args in enumerate(values):
-            query = query.insert(*[Parameter(f"${i + 1 + columns_count * page}") for i in range(columns_count)])
-            query_args += args
-
-        query = query.returning("*")
-
-        inserted = await self.execute(table, query, query_args)
-
-        return inserted
-
-    async def update_one(
-        self,
-        /,
-        table: Type[T],
-        item: T,
-    ) -> T:
-        query = table.update()
-
-        for pk in table.__memo__.pk:
-            query = query.where(pk._pypika_field == getattr(item, pk._field_name))
-
-        columns, [values] = _insert_vals(table, [item])
-
-        for i, column in enumerate(columns):
-            query = query.set(column, Parameter(f"${i + 1}"))
-
-        query = query.returning("*")
-
-        [updated] = await self.execute(table, query, values)
-        return updated
-
-    async def delete(
-        self,
-        /,
-        table: Type[T],
-        items: list[T],
-    ) -> list[T]:
-        query = table.delete()
-
-        for pk in table.__memo__.pk:
-            query = query.where(pk._pypika_field.isin([getattr(item, pk._field_name) for item in items]))
-
-        query = query.returning("*")
-
-        deleted = await self.execute(table, query)
-
-        return deleted
-
-    async def fetch_related(self, /, table: Type[T], items: list[T], relations: Sequence[Sequence[Type[U]]]) -> list[T]:
-        if pool := self.pool:
-            connection = await self.pool.acquire()
-
-        elif not (connection := self.connection):
             raise P3ormException("not connected")
 
-        try:
-            for relationships in relations:
-                for relationships in relations:
-                    await _load_relationships(items, table, relationships, connection)  # type: ignore
+        self.transaction = self.connection.transaction()
+        await self.transaction.start()
+        return self
 
-        finally:
-            if pool := self.pool:
-                await pool.release(connection)
+    async def __aexit__(
+        self,
+        exc_type: Type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        if exc_type is None:
+            await self.transaction.commit()
+        else:
+            await self.transaction.rollback()
 
-        return items
+        if self.driver.pool:
+            await self.driver.pool.release(self.connection)
+
+    def is_connected(self) -> bool:
+        driver: Postgres = self.driver
+        return driver.is_connected()
 
 
 def _insert_vals(table: Type[T], items: list[T]) -> tuple[list[str], list[list[Any]]]:
@@ -388,37 +435,3 @@ async def _load_relationship_for_items(
         related_items = [ri for ris in related_items_map.values() for ri in ris]
 
     return related_items
-
-
-class ConnectionExecutor(Executor[T], Generic[T]):
-    table: Type[T]
-    driver: Postgres
-
-    async def execute(
-        self,
-        query: str | QueryBuilder,
-        query_args: list[Any] | None = None,
-    ) -> list[T]:
-        if isinstance(query, QueryBuilder):
-            query = query.get_sql()
-
-        if not self.driver.is_connected():
-            raise P3ormException("not connected")
-
-        records: list[asyncpg.Record]
-
-        if connection := self.driver.connection:  # type: ignore
-            records = await connection.fetch(query, *(query_args or []))
-
-        elif self.driver.pool:
-            async with self.driver.pool.acquire() as connection:
-                # connection: asyncpg.Connection
-                records = await connection.fetch(query, *(query_args or []))
-
-        else:
-            raise P3ormException("not connected. driver has no pool or connection")
-
-        return [
-            self.table.__memo__.factory(**{self.table.__memo__.record_kwarg_map[k]: v for k, v in record.items()})
-            for record in records
-        ]

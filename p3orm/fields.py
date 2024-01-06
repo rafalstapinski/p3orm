@@ -32,7 +32,6 @@ class PormField:
             self.column_name = column_name
 
 
-
 class RelationshipType(str, Enum):
     foreign_key = "foreign_key"
     reverse = "reverse"
@@ -50,7 +49,6 @@ class PormRelationship(Generic[T]):
         self.self_column = self_column
         self.foreign_column = foreign_column
         self.relationship_type = relationship_type
-    
 
 
 def Column(pk: bool = False, db_gen: bool = False, has_default: bool = False, column_name: str | None = None) -> Any:
