@@ -35,6 +35,7 @@ class PormField:
 class RelationshipType(str, Enum):
     foreign_key = "foreign_key"
     reverse = "reverse"
+    reverse_one = "reverse_one"
 
 
 class PormRelationship(Generic[T]):
@@ -75,3 +76,7 @@ def ForeignKeyRelationship(self_column: str, foreign_column: str) -> Any:
 
 def ReverseRelationship(self_column: str, foreign_column: str) -> Any:
     return PormRelationship(self_column, foreign_column, RelationshipType.reverse)
+
+
+def ReverseOneToOneRelationship(self_column: str, foreign_column: str) -> Any:
+    return PormRelationship(self_column, foreign_column, RelationshipType.reverse_one)

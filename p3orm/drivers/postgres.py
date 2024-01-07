@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from types import TracebackType
-from typing import Any, DefaultDict, Self, Sequence, Type, TypeVar, cast, get_args
+from typing import Any, DefaultDict, Self, Sequence, Type, TypeVar, cast
 
 import asyncpg
 from pypika.dialects import PostgreSQLQuery, PostgreSQLQueryBuilder
@@ -380,12 +380,7 @@ async def _load_relationship_for_items(
     if not items:
         return []
 
-    foreign_table = cast(
-        Type[U],
-        relationship._data_type
-        if relationship.relationship_type == RelationshipType.foreign_key
-        else get_args(relationship._data_type)[0],
-    )
+    foreign_table = cast(Type[U], relationship._data_type)
 
     self_field = table.__memo__.columns[relationship.self_column]
     self_keys = [getattr(item, self_field._field_name) for item in items]
@@ -397,7 +392,7 @@ async def _load_relationship_for_items(
     related_items: list[U] = []
 
     # TODO: set related relationship to item on related items
-    if relationship.relationship_type == RelationshipType.foreign_key:
+    if relationship.relationship_type in (RelationshipType.foreign_key, RelationshipType.reverse_one):
         related_item_map: dict[Any, U] = {
             record[relationship.foreign_column]: foreign_table.__memo__.factory(
                 **{foreign_table.__memo__.record_kwarg_map[k]: v for k, v in record.items()}
