@@ -1,4 +1,4 @@
-__version__ = "1.0.0-alpha.2"
+__version__ = "1.0.0rc1"
 
 from .drivers.base import Driver  # noqa
 from .drivers.postgres import Postgres  # noqa
