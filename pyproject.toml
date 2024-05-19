@@ -1,28 +1,22 @@
 [tool.poetry]
 name = "p3orm"
-version = "1.0.0-alpha.1"
-description = "Utilitarian Python ORM for Postgres/SQLite, backed by asyncpg/aiosqlite, Pydantic, and PyPika"
+version = "1.0.0rc1"
+description = "Utilitarian Python ORM for Postgres, backed by asyncpg and PyPika"
 authors = ["Rafal Stapinski <stapinskirafal@gmail.com>"]
-keywords = ["postgres", "sqlite", "async", "orm"]
+keywords = ["postgres", "async", "orm"]
 readme = "README.md"
 license = "MIT"
 homepage = "https://rafalstapinski.github.io/p3orm"
 repository = "https://github.com/rafalstapinski/p3orm"
-packages = [
-  {include = "p3orm"},
-  {include = "p3orm/py.typed"},
-]
+packages = [{ include = "p3orm" }, { include = "p3orm/py.typed" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-attrs = "^23.1.0"
-asyncpg = {version = "^0.29.0", optional = true}
-aiosqlite = {version = "^0.19.0", optional = true}
+asyncpg = { version = "0.29.0" }
 pypika = "^0.48.9"
 
 [tool.poetry.extras]
-sqlite = ["aiosqlite"]
-postgres = ["asyncpg"]
+pydantic = ["pydantic"]
 
 [tool.poetry.group.dev.dependencies]
 tomli = "^2.0.1"
@@ -33,6 +27,7 @@ isort = "^5.12.0"
 mypy = "^1.7.1"
 black = "^23.12.0"
 pylint = "^3.0.3"
+pydantic = "^2.7.1"
 
 [tool.poetry.group.publish.dependencies]
 mkdocs = "^1.5.3"
@@ -42,7 +37,7 @@ mkdocs-material = "^9.4.14"
 pytest = "^7.4.3"
 pytest-asyncio = "^0.21.1"
 pytest-postgresql = "^5.0.0"
-psycopg = {extras = ["binary"], version = "^3.1.13"}
+psycopg = { extras = ["binary"], version = "^3.1.13" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -89,3 +84,6 @@ ignore_missing_imports = false
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.basedpyright]
+typeCheckingMode = "basic"

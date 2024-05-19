@@ -1,3 +1,4 @@
+from enum import Enum
 from types import NoneType, UnionType
 from typing import Any, Type, cast, get_args, get_origin
 
@@ -7,9 +8,63 @@ from pypika.enums import Comparator
 from pypika.queries import QueryBuilder
 from pypika.terms import BasicCriterion, ComplexCriterion, ContainsCriterion, RangeCriterion, ValueWrapper
 
+try:
+    from pydantic import BaseModel
+
+    PydanticBaseModel = BaseModel
+except ImportError:
+    PydanticBaseModel = None
+
+from p3orm.fields import PormField
+
 
 def is_optional(t: Type) -> bool:
     return get_origin(t) == UnionType and NoneType in get_args(t)
+
+
+def get_base_type(t: Type) -> Type:
+    if is_optional(t):
+        return get_args(t)[0]
+    return t
+
+
+def is_field_pydantic(field: PormField) -> bool:
+    base_type = get_base_type(field._data_type)
+
+    try:
+        return bool(PydanticBaseModel) and issubclass(base_type, PydanticBaseModel)
+    except:  # noqa
+        ...
+
+    return False
+
+
+def is_field_enum(field: PormField) -> bool:
+    base_type = get_base_type(field._data_type)
+
+    if isinstance(base_type, type(Enum)):
+        return issubclass(base_type, Enum)
+
+    if get_origin(base_type) == UnionType:
+        return all(issubclass(i, Enum) for i in get_args(base_type))
+
+    return False
+
+
+def cast_enum(field: PormField, value: str) -> bool:
+    base_type = get_base_type(field._data_type)
+
+    if isinstance(base_type, type(Enum)):
+        return base_type(value)
+
+    if get_origin(base_type) == UnionType:
+        for i in get_args(base_type):
+            try:
+                return i(value)
+            except:  # noqa
+                ...
+
+    raise ValueError(f"Could not cast {value} to {base_type}")
 
 
 class PormComparator(Comparator):
